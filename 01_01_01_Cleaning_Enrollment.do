@@ -7,7 +7,7 @@ local term_index “$mydir\clean\term_index.dta”
 
 use `main_in’, clear
 
-drop ssn_pseudo person_key student_rank_code
+drop ssn_pseudo person_key student_rank_code campus_key 
 
 *keep only grad students
 keep if admission_area_code == “GRD”
@@ -33,9 +33,8 @@ drop if first_term<25
 gen gpa = cum_gpa_quality_points / cum_credit_hours_earned
 
 drop if gpa == .
-drop if gpa < 1
 
-drop cum*
+drop cum* admission_area_desc calendar*
 
 rename academic_program_key pgrm_code
 destring pgrm_code, replace

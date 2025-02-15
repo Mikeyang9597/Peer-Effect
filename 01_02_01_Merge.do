@@ -11,17 +11,26 @@ merge m:1 hei_psid using `race’
 keep if _merge == 3
 drop _merge
 
-merge m:1 hei_psid using `degree’
-drop if _merge == 2
-drop _merge
+drop student*
 
-merge m:1 pgrm_code using `program’
-keep if _merge == 3
-drop _merge
+*revise first and last term variables now that I've dropped non-doctorates
 
-*replace degree_cert_level_desc="Doctoral degree" if degree_cert_level_code=="09" & yr_num>2010
-rename degree_cert_level_code pgrm_level_code
-*rename degree_name_code pgrm_degree_code
-*rename degree_concentration_desc pgrm_concentrate_desc
-*rename degree_cert_level_desc pgrm_level_desc
-*drop min_completion_time_yrs min_completion_cr_hours program_rec_status_code active_flag 
+rename first_term first_term_GRD
+rename last_term last_term_GRD
+
+egen first_term_PhD=min(term_index), by(hei_psid inst_code)
+egen last_term_PhD=max(term_index), by(hei_psid inst_code)
+
+egen transfer_from_other_level=max(first_term_PhD!=first_term_GRD), by(hei_psid inst_code)
+egen transfer_to_other_level=max(last_term_PhD!=last_term_GRD), by(hei_psid inst_code)
+
+*revise first term variable
+rename first_term_PhD first_term_nocredit
+egen first_term_PhD=min(term_index), by(hei_psid inst_code)
+
+*Create group observation identifiers
+egen person_inst=group(hei_psid inst_code)
+
+save “\\chrr\vr\profiles\syang\Desktop\clean\merged_main.dta”,replace
+
+********************************************************************************
