@@ -11,7 +11,7 @@ use `in', clear
 merge m:1 hei_psid term_index using `degree’
 drop if _merge == 2
 rename _merge PhD_merge
-drop yr_num admission*
+drop admission*
 
 bysort hei_psid (year_earned): replace year_earned = year_earned[_n-1] if missing(year_earned)
 rename year_earned term_earned_phd
@@ -21,20 +21,14 @@ rename year_earned term_earned_phd
 
 *generate variable for ever completes PhD
 egen everPhD=max(PhD_merge==3), by(person_inst)
+
 *generate indicator for whether field enrolled==field of PhD
-gen samefieldPhD=(subjectfield2010==pgrm_cipfield2010_admit)
+*gen samefieldPhD=(subjectfield2010==pgrm_cipfield2010_admit)
+
 *Calculate yrs-to-degree for PhD
 gen yrstoPhD=(term_index-first_term_PhD+1)/4
 
-
-********************************************************************************
-
-
-*merge m:1 pgrm_code using `program’
-*keep if _merge == 3
-*drop _merge
-
-*save “\\chrr\vr\profiles\syang\Desktop\clean\merged_main_done.dta”,replace
+save “\\chrr\vr\profiles\syang\Desktop\clean\merged_main_done.dta”,replace
 
 ********************************************************************************
 

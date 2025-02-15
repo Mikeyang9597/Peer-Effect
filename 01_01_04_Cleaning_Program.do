@@ -92,4 +92,8 @@ sort pgrm_code
 
 drop active* b* e* term_range
 
+bysort pgrm_code (prog_cip_code): gen oops = (prog_cip_code[1]!=prog_cip_code[_n])
+
+rename prog_cip_code cip_code
+
 save “\\chrr\vr\profiles\syang\Desktop\clean\clean_program.dta”,replace
