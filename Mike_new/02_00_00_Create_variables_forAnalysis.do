@@ -32,8 +32,9 @@ drop if inst_code=="YNGS" | inst_code=="MCOT"
 *Clean up various control variables and identifiers
 **************************************************************
 *STEM indicator
-*gen STEM=1 if pgrm_STEM_admit=="Graduate and Above" | pgrm_STEM_admit=="All Levels"
-*replace STEM=0 if pgrm_STEM_admit=="No Levels"
+rename stemdesignation_PhD pgrm_STEM_admit
+gen STEM=1 if pgrm_STEM_admit=="Graduate and Above" | pgrm_STEM_admit=="All Levels"
+replace STEM=0 if pgrm_STEM_admit=="No Levels"
 *Age variable
 destring birth_yr, replace
 gen age=yr_num_admit-birth_yr
@@ -45,12 +46,10 @@ drop sex
 *international variable
 gen international=race=="NR"
 *encode string variables
-
-*
-*encode pgrm_cipfield2010_admit, gen(field_num)
-*
-
+rename disciplinearea pgrm_cipfield2010_admit
+encode pgrm_cipfield2010_admit, gen(field_num)
 encode inst_code, gen(inst_num)
+
 *replace race=unknown for international students
 replace race="UK" if international==1
 *race indicators
@@ -58,20 +57,17 @@ tab race, gen(race_ind)
 *create CIP code-inst code identifier for fixed effects
 egen pgrm_inst=group(pgrm_code_admit inst_code)
 
-*
-*egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
-*
+rename cipcode2010_PhD pgrm_cipcode2010_admit
+egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
+egen field_inst=group(pgrm_cipfield2010_admit inst_code)
 
-*
-*egen field_inst=group(pgrm_cipfield2010_admit inst_code)
-*
 
 
 **************************************************************
 *Create main outcome variables
 **************************************************************
 *Indicator for still enrolled in SP16
-gen stillenrolled=last_term_PhD==68
+gen stillenrolled=last_term_PhD>103
 replace stillenrolled=0 if everPhD==1
 *Indicator for dropout
 gen dropout=(everPhD==0)
@@ -111,7 +107,7 @@ else if "`x'"=="pgrm" {
 local groupvar="pgrm_code_admit" 
 }
 *Create cohort size variable and log size
-egen `x'_cohort_size=count(hei_psid), by(`groupvar' inst_code first_term_PhD)
+egen `x'_cohort_size=count(id), by(`groupvar' inst_code first_term_PhD)
 *Create cohort gender composition variables
 egen `x'_num_female=sum(female), by(`groupvar' inst_code first_term_PhD)
 gen `x'_num_fem_peers=`x'_num_female
@@ -181,7 +177,7 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 
 
 *Main sample is 2005-2009 (cohorts for whom Phdin6 is defined)
-drop if first_term_PhD>42
+*drop if first_term_PhD>48
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace

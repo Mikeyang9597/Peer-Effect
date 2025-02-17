@@ -34,8 +34,7 @@ drop _merge
 replace cipcode2010=temp if term_index>=49
 merge m:1 cipcode2010 using `CIP2010', update 
 drop if _merge==2
-drop temp  ciptitle2000 _merge cipcode2000 subjecttitle2010  disciplinearea ciptitle2010
-drop incarcerate*
+drop temp _merge incarcerate*
 
 *generate variable for ever completes PhD
 egen everPhD=max(PhD_merge==3), by(person_inst)
