@@ -23,7 +23,7 @@ drop admission* student* main* calendar*
 rename higher_ed_pseudo_id id
 rename fiscal_year yr_num
 rename term term_code
-rename institution_key inst_code
+rename institution_code inst_code
 
 *merge with term index
 merge m:1 yr_num term_code using `term_index'
@@ -44,16 +44,7 @@ drop cum* term_key special* subsidy* institution_level*
 rename academic_program_key pgrm_code
 destring pgrm_code, replace
 
+drop institution*
+
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_main.dta",replace
-
-
-
-
-
-
-
-
-
-
-
-
+********************************************************************************

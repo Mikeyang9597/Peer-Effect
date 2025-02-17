@@ -1,10 +1,11 @@
+********************************************************************************
 *01_01_02_Cleaning_Demographics.do
-
+********************************************************************************
 local race "$mydir\raw\person_AY98_AY23.dta"
 use `race', clear
 
 *drop
-drop ssn_pseudo person_key begin* end* first* active* birth* dob ada*
+drop ssn_pseudo person_key begin* end* first* active* dob ada*
 keep if inlist(sex, "F", "M")
 
 *rename
@@ -17,14 +18,17 @@ replace cood = "zzz" if coo == "99"
 replace cood = "zzz" if coo == "98"
 replace cood = "zzz" if coo == ""
 
+*keep 1 per student
 sort cood
 bysort id : keep if _n == 1
+replace cood = . if cood == "zzz"
 
 *clean race
 replace race = "AS" if race == "HP"
 replace race = "UK" if race == "MR"
-replace cood = . if cood == "zzz"
 
+*drop
 drop zip* us* underprepared*
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_race.dta",replace
+********************************************************************************

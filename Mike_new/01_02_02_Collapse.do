@@ -1,7 +1,7 @@
 *01_02_03_Collapse_to_individual.do
 
 *Input files:
-local in "$mydir\clean_mike\merged_main_done.dta"
+local in "$mydir\clean_mike\merged_main.dta"
 local term_index "$mydir\clean_mike\term_index.dta"
 
 *data in
@@ -36,6 +36,11 @@ rename current_term_index term_index
 
 ***keep only 1 obs per person-institution***
 keep if term_index==first_term_PhD
+
+***Re-name variables that change over time to reflect that I've only kept their first observation***
+foreach var of varlist yr_num term_code pgrm* {
+rename `var' `var'_admit
+}
 
 ***Drop unnecessary variables***
 drop gpa 

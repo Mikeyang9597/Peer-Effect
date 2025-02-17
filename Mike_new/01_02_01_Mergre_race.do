@@ -25,9 +25,9 @@ egen first_term_PhD=min(term_index), by(id inst_code)
 
 *Create group observation identifiers
 egen person_inst=group(id inst_code)
-drop term_code oops
 
-bysort id (cip_code): gen oops = (cip_code[1]!=cip_code[_n])
+compress
+
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\merged_main.dta",replace
 
 ********************************************************************************

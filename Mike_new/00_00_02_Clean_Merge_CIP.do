@@ -33,7 +33,7 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\CIP2000.dta",replace
 
 
 *Merge all together
-use "$mydir\clean\CIPcrosswalk1990to2000.dta" , clear
+use "$mydir\clean_mike\CIPcrosswalk1990to2000.dta" , clear
 merge m:1 cipcode2000 using "$mydir\clean_mike\CIP2000.dta"
 drop if _merge==1
 drop _merge
@@ -43,8 +43,6 @@ drop _merge
 drop textchange 
 *merge in 2010 CIP
 merge m:1 cipcode2010 using "$mydir\clean_mike\CIP2010.dta"
-
-
 drop _merge 
 rename subjecttitle subjecttitle2010
 rename subjectfield subjectfield2010
@@ -58,12 +56,12 @@ use "$mydir\clean_mike\CIPmaster.dta", clear
 drop if missing(cipcode1990)
 drop *2000 action
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\CIPmaster_nomiss1990.dta",replace
-use "$mydir\clean\CIPmaster.dta", clear
+use "$mydir\clean_mike\CIPmaster.dta", clear
 drop if missing(cipcode2000)
 drop *1990 action
 duplicates drop
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\CIPmaster_nomiss2000.dta",replace
-use "$mydir\clean\CIPmaster.dta", clear
+use "$mydir\clean_mike\CIPmaster.dta", clear
 drop if missing(cipcode2010)
 drop if cipcode2000==59999
 drop *1990 *2000 action

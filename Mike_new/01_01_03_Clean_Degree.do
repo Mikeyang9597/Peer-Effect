@@ -1,5 +1,6 @@
+********************************************************************************
 *01_01_03_Degree.do
-
+********************************************************************************
 local degree "$mydir\raw\degree_AY98_AY23.dta"
 local term_index "$mydir\clean_mike\term_index.dta"
 
@@ -34,3 +35,4 @@ keep id degree*  campus* institution* pgrm* ipeds* credit* cip* term_index
 gen term_earned = term_index
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_degree.dta",replace
+********************************************************************************
