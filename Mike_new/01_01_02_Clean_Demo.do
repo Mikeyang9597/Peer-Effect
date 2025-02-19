@@ -21,7 +21,7 @@ replace cood = "zzz" if coo == ""
 *keep 1 per student
 sort cood
 bysort id : keep if _n == 1
-replace cood = . if cood == "zzz"
+replace cood = "." if cood == "zzz"
 
 *clean race
 replace race = "AS" if race == "HP"
