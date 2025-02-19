@@ -177,7 +177,7 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 
 
 *Main sample is 2005-2009 (cohorts for whom Phdin6 is defined)
-*drop if first_term_PhD>48
+drop if first_term_PhD>48
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace
