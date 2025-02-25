@@ -3,7 +3,7 @@
 ****************************************************
 
 *Input files:
-local in "$mydir\clean_mike\main_in.dta"
+local in "$mydir\clean_mike\main_in_ready.dta"
 
 *main in
 use `in', clear
@@ -26,13 +26,22 @@ replace yrstoPhD=yrstoPhD-.25 if term_code=="SM"
 ***Drop Youngstown and Medical U***
 drop if inst_code=="YNGS" | inst_code=="MCOT"
 
-
+***Drop transfer students***
+*Also calculate % transfer in a program so that we can drop high-transfer programs later
+egen per_transfer=mean(transfer_from), by(pgrm_cipcode2010_admit inst_code)
+*egen temptag=tag(pgrm_cipcode2010_admit inst_code)
+*codebook per_transfer if temptag==1
+*Drop programs with >=20% transfer students, but can show robustness for dropping more or less
+*For future robustness checks uncomment this line:
+*gen todrop=(per_transfer>=`1')
+gen todrop=(per_transfer>=.20)
+drop if transfer_from==1
+drop if todrop==1
 
 **************************************************************
 *Clean up various control variables and identifiers
 **************************************************************
 *STEM indicator
-rename stemdesignation_PhD pgrm_STEM_admit
 gen STEM=1 if pgrm_STEM_admit=="Graduate and Above" | pgrm_STEM_admit=="All Levels"
 replace STEM=0 if pgrm_STEM_admit=="No Levels"
 *Age variable
@@ -46,18 +55,14 @@ drop sex
 *international variable
 gen international=race=="NR"
 *encode string variables
-rename disciplinearea pgrm_cipfield2010_admit
 encode pgrm_cipfield2010_admit, gen(field_num)
 encode inst_code, gen(inst_num)
-
 *replace race=unknown for international students
 replace race="UK" if international==1
 *race indicators
 tab race, gen(race_ind)
 *create CIP code-inst code identifier for fixed effects
 egen pgrm_inst=group(pgrm_code_admit inst_code)
-
-rename cipcode2010_PhD pgrm_cipcode2010_admit
 egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
 egen field_inst=group(pgrm_cipfield2010_admit inst_code)
 
@@ -67,7 +72,7 @@ egen field_inst=group(pgrm_cipfield2010_admit inst_code)
 *Create main outcome variables
 **************************************************************
 *Indicator for still enrolled in SP16
-gen stillenrolled=last_term_PhD>103
+gen stillenrolled=last_term_PhD>68
 replace stillenrolled=0 if everPhD==1
 *Indicator for dropout
 gen dropout=(everPhD==0)
@@ -89,13 +94,12 @@ gen persist_to_yr`j'=(yrs_enrolled_PhD>`i' | everPhD==1 )
 replace persist_to_yr`j'=. if first_term_PhD>66-4*(`i')
 }
 
-
 **************************************************************
 *Create main treatment variables
 **************************************************************
 ***Create cohort-specific variables***
 *local groups "field cip pgrm"
-local groups "field cip pgrm"
+local groups "field cip"
 foreach x of local groups {
 if "`x'"=="field" {
 local groupvar="pgrm_cipfield2010_admit" 
@@ -103,9 +107,8 @@ local groupvar="pgrm_cipfield2010_admit"
 else if "`x'"=="cip" {
 local groupvar="pgrm_cipcode2010_admit" 
 }
-else if "`x'"=="pgrm" {
-local groupvar="pgrm_code_admit" 
-}
+
+
 *Create cohort size variable and log size
 egen `x'_cohort_size=count(id), by(`groupvar' inst_code first_term_PhD)
 *Create cohort gender composition variables
@@ -177,7 +180,7 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 
 
 *Main sample is 2005-2009 (cohorts for whom Phdin6 is defined)
-drop if first_term_PhD>48
+drop if first_term_PhD>42
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace
@@ -191,7 +194,6 @@ egen programtag=tag(cip_inst)
 codebook mean_per_female if programtag
 *%female: mean=37.7; median=36.7; p75=50.3
 gen typically_male=(mean_per_female<=.367064)
-
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace

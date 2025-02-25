@@ -11,35 +11,15 @@ local CIP2010 "$mydir\clean_mike\CIPmaster_nomiss2010.dta"
 use `in', clear
 
 *merge main and degree
-merge m:1 id term_index using `degree'
+merge m:1 id using `degree'
 drop if _merge == 2
 rename _merge PhD_merge
-
-* mark term_earned
-bysort id (term_earned): replace term_earned = term_earned[_n-1] if missing(term_earned)
 rename term_earned term_earned_phd
-
-*rename CIP
-rename cip_code subject_code
-
-
-*Merge in field titles from degree subject codes using CIP code crosswalks
-*first match CIP codes from before 2010
-destring subject_code, gen(temp)
-gen cipcode2000=temp if term_index<49
-merge m:1 cipcode2000 using `CIP2000'
-drop if _merge==2
-drop _merge 
-*Then match CIP codes from after 2010
-replace cipcode2010=temp if term_index>=49
-merge m:1 cipcode2010 using `CIP2010', update 
-drop if _merge==2
-drop temp _merge incarcerate*
 
 *generate variable for ever completes PhD
 egen everPhD=max(PhD_merge==3), by(person_inst)
 *Calculate yrs-to-degree for PhD
-gen yrstoPhD=(term_index-first_term_PhD+1)/4
+gen yrstoPhD=(term_earned_phd-first_term_PhD+1)/4
 
 *Flag students who earn multiple PhDs
 duplicates tag person_inst, gen(multiplePhD)
@@ -49,13 +29,11 @@ duplicates tag person_inst, gen(multiplePhD)
 egen earliestPhD=min(term_index), by(person_inst)
 drop if term_index!=earliestPhD
 duplicates report person_inst
-foreach var of varlist term_index cipcode2010 subjectfield2010 stemdesignation pgrm_code {
+foreach var of varlist pgrm_code term_index {
 rename `var' `var'_PhD
 }
 
-*Drop extraneous variables
-drop subject_code
 
 *save
-save "\\chrr\vr\profiles\syang\Desktop\clean_mike\main_in.dta",replace
+save "\\chrr\vr\profiles\syang\Desktop\clean_mike\main_in_ready.dta",replace
 ********************************************************************************

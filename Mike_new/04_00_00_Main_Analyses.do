@@ -5,6 +5,9 @@ local main "$mydir\clean_mike\Data_Preferred_Sample.dta"
 local robust "$mydir\clean_mike\Data_for_Robustness.dta"
 local allyrs "$mydir\clean_mike\Data_all_Years.dta"
 
+global controls "cip_cohort_size c.age##c.age international race_ind1-race_ind4 race_ind6"
+global FEs "i.first_term_PhD i.cip_inst"
+
 ***************************************************************************
 *Table 1: Summary Statistics by CIP Code
 ***************************************************************************
@@ -14,9 +17,7 @@ local allyrs "$mydir\clean_mike\Data_all_Years.dta"
 
 *main in
 use `main', clear
-rename subjectfield2010_PhD pgrm_cipfield
-rename ciptitle2010 pgrm_ciptitle
-collapse (first) pgrm_cipfield pgrm_ciptitle mean_cohort_size mean_per_female, by(pgrm_cipcode inst_code)
+collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size mean_per_female, by(pgrm_cipcode inst_code)
 collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size mean_per_female (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)
 sort mean_per_female 
 
@@ -40,38 +41,87 @@ summ STEM cip_cohort_size cip_num_female cip_per_female ratioFM if cohort_tag==1
 
 
 ***************************************************************************
-*Table 3: Summary Statistics by Gender
+* Table 3: Summary Statistics by Gender
 ***************************************************************************
-*Compare men to women in estimation sample
-use $main, clear
+
+use `main', clear  
+
+* 추가 변수 생성
 gen dropout_by6 = 1 - persist_to_yr7
 gen enrolledafter6 = persist_to_yr7 - PhDin6
 
-forval f = 0/1 {
+foreach f in 0 1 {
+    di "--------------------------------------------------"
+    di "Summary Statistics for Female == `f'"
+    di "--------------------------------------------------"
+
     * Outcome variables
     summ PhDin6 yrstoPhD dropout_by6 enrolledafter6 yrs_enrolled_PhD if female == `f'
     
     * Demographics/Controls
     summ age international if female == `f'
     
-    * Grades 
+    * Grades
     summ firstQgpa firstYrgpa if female == `f'
 }
 
 
-
+***************************************************************************
+*Table 4: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
+***************************************************************************
+use `main', clear  
+*Run using 3 different definitions of cohort gender composition
+local gender_comp "cip_per_fem_peers ratioFM cip_num_fem_peers"
+foreach mainvar of local gender_comp {
+	quietly probit PhDin6 c.`mainvar'##i.female  $controls $FEs, cluster(cip_inst) 
+	*Effect of no female peers on female student
+	margins, dydx(i.female) atmeans at(`mainvar'==0)
+	*Effect of addtl female peers on male students and female students separately
+	margins, dydx(`mainvar' ) atmeans over(female) post
+	*Differential effect of addtl female peers on female students vs. male students
+	lincom _b[`mainvar':1.female] - _b[`mainvar':0.female]
+}
 
 ***************************************************************************
-*Figure 1: Trends in Cohort Gender Composition By Field
+*Table 5: Effect of Cohort Gender Composition on Ph.D. Persistence
 ***************************************************************************
-use $allyrs, clear
-keep if STEM==1
-drop if mean_cohort_size<=9
-*drop programs that start after 2009
-egen first_cohort=min(first_term_PhD), by(cip_inst)
-drop if first_cohort>42
-collapse (first) cip_per_female pgrm_cipfield inst_code, by(cip_inst first_term_PhD)
-sort cip_inst first_term_PhD
+use `main', clear  
+*For 5 outcome variables: persistence through year 2...6
+local yvars "persist_to_yr2 persist_to_yr3 persist_to_yr4 persist_to_yr5 persist_to_yr6"
+foreach y of local yvars {
+	quietly probit `y' c.cip_per_fem_peers##i.female  $controls $FEs, cluster(cip_inst) 
+	*Effect of no female peers on female student
+	margins, dydx(i.female) atmeans at(cip_per_fem_peers==0)
+	*Effect of addtl female peers on male students and female students separately
+	margins, dydx(cip_per_fem_peers) atmeans over(female) post
+	*Differential effect of addtl female peers on female students vs. male students
+	lincom _b[cip_per_fem_peers:1.female] - _b[cip_per_fem_peers:0.female]
+}
 
-
+***************************************************************************
+*Table 6: Effects of Cohort Gender Composition By Typically Male/Female Programs
+***************************************************************************
+use $main, clear
+*First use definition of typically male programs: average cohort gender composition ≤ 36.7% female
+forval g=0/1 {
+	quietly probit PhDin6 c.cip_per_fem_peers##i.female  $controls $FEs if typically_male==`g', cluster(cip_inst) 
+	*Effect of no female peers on female student
+	margins, dydx(i.female) atmeans at(cip_per_fem_peers==0)
+	*Effect of addtl female peers on male students and female students separately
+	margins, dydx(cip_per_fem_peers) atmeans over(female) post
+	*Differential effect of addtl female peers on female students vs. male students
+	lincom _b[cip_per_fem_peers:1.female] - _b[cip_per_fem_peers:0.female]
+}
+*Second use definition of typically male programs: all programs in Engineering, Mathematics & Statistics, and Physics
+gen typically_male2 = 0
+replace typically_male2=1 if pgrm_cipfield=="Other Engineering"  | pgrm_cipfield=="Chemical Engineering" | pgrm_cipfield=="Computer Engineering"  | pgrm_cipfield=="Electrical, Electronics, and Communications Engineering" | pgrm_cipfield=="Materials Engineering" | pgrm_cipfield=="Mathematics and Statistics" | pgrm_cipfield=="Physics" | pgrm_cipfield=="Civil Engineering" | pgrm_cipfield=="Mechanical, Industrial, and Manufacturing Engineering" | pgrm_cipfield=="Physical Sciences" 
+forval g=0/1 {
+	quietly probit PhDin6 c.cip_per_fem_peers##i.female  $controls $FEs if typically_male2==`g', cluster(cip_inst) 
+	*Effect of no female peers on female student
+	margins, dydx(i.female) atmeans at(cip_per_fem_peers==0)
+	*Effect of addtl female peers on male students and female students separately
+	margins, dydx(cip_per_fem_peers) atmeans over(female) post
+	*Differential effect of addtl female peers on female students vs. male students
+	lincom _b[cip_per_fem_peers:1.female] - _b[cip_per_fem_peers:0.female]
+}
 

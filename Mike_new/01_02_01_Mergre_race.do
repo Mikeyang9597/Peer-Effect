@@ -1,6 +1,6 @@
 *01_02_01_Merge.do
 
-local main "$mydir\clean_mike\clean_main.dta"
+local main "$mydir\clean_mike\clean_main_cip.dta"
 local race "$mydir\clean_mike\clean_race.dta"
 
 *data in
@@ -10,6 +10,18 @@ use `main' , clear
 merge m:1 id using `race'
 keep if _merge == 3
 drop _merge
+
+gen hold=(inst_code=="OHSU" & yr_num==2011 & term_code=="AU")
+replace term_code="SP" if hold==1
+replace yr_num=2012 if hold==1
+
+gen hold2=((yr_num==2015 & term_code!="SP") | yr_num==2016)
+replace yr_num=yr_num-1 if hold2==1
+
+replace term_code="AU" if hold==1
+replace yr_num=2011 if hold==1
+replace yr_num=yr_num+1 if hold2==1
+drop hold hold2
 
 *revise first and last term variables now that I've dropped non-doctorates
 rename first_term first_term_GRD

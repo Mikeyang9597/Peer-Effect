@@ -19,15 +19,14 @@ keep if admission_area_code == "GRD"
 keep if inlist(level_completed_code, "17")
 
 *merge with term index
-rename earned_fiscal_year yr_num
+rename earned_calendar_year yr_num
 rename earned_term_desc term_code
 merge m:1 yr_num term_code using `term_index'
 keep if _merge == 3
 drop _merge
 
 *keep only 1st degree
-sort term_index
-bysort id : keep if _n == 1
+bysort id (term_index): keep if _n==1
 *keep only needed data
 keep id degree*  campus* institution* pgrm* ipeds* credit* cip* term_index
 

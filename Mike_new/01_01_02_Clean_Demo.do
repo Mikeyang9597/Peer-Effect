@@ -7,11 +7,13 @@ use `race', clear
 *drop
 drop ssn_pseudo person_key begin* end* first* active* dob ada*
 keep if inlist(sex, "F", "M")
+drop if birth_yr == .
 
 *rename
 rename higher_ed_pseudo_id id
 rename country_of_origin_desc cood
 rename country_of_origin coo
+rename nonresident_alien_flag international_
 
 *sort coo
 replace cood = "zzz" if coo == "99"
