@@ -20,8 +20,14 @@ replace cood = "zzz" if coo == "99"
 replace cood = "zzz" if coo == "98"
 replace cood = "zzz" if coo == ""
 
+bysort id (cood): gen oops = (cood[1] != cood[_n])
+bysort id (cood): replace cood = cood[1] if oops == 1
+bysort id (cood): replace coo = coo[1] if oops == 1
+bysort id (cood): gen oops_ = (cood[1] != cood[_n])
+tab oops_
+drop oops oops_
+
 *keep 1 per student
-sort cood
 bysort id : keep if _n == 1
 replace cood = "." if cood == "zzz"
 
