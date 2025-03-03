@@ -8,7 +8,7 @@ local term_index "$mydir\clean_mike\term_index.dta"
 use `main_in', clear
 
 *drop 
-drop ssn_pseudo person_key
+*drop ssn_pseudo person_key
 
 *keep only GRD & PHD
 keep if admission_area_code == "GRD"

@@ -7,7 +7,7 @@ local term_index "$mydir\clean_mike\term_index.dta"
 use `degree', clear
 
 *drop 
-drop ssn_pseudo person_key term 
+*drop ssn_pseudo person_key term 
 
 *rename
 rename higher_ed_pseudo_id id

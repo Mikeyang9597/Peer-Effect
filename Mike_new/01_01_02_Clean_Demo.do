@@ -5,7 +5,8 @@ local race "$mydir\raw\person_AY98_AY23.dta"
 use `race', clear
 
 *drop
-drop ssn_pseudo person_key begin* end* first* active* dob ada*
+*drop ssn_pseudo person_key 
+drop begin* end* first* active* dob ada*
 keep if inlist(sex, "F", "M")
 drop if birth_yr == .
 
