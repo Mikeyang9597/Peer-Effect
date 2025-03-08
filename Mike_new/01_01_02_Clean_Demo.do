@@ -4,22 +4,24 @@
 local race "$mydir\raw\person_AY98_AY23.dta"
 use `race', clear
 
-*drop
-*drop ssn_pseudo person_key 
+*drop 
+drop higher_ed_pseudo_id person_key
 drop begin* end* first* active* dob ada*
+
+*drop missing data
 keep if inlist(sex, "F", "M")
 drop if birth_yr == .
 
 *rename
-rename higher_ed_pseudo_id id
+rename ssn_pseudo id
 rename country_of_origin_desc cood
 rename country_of_origin coo
-rename nonresident_alien_flag international_
+rename nonresident_alien_flag int_
 
 *sort coo
-replace cood = "zzz" if coo == "99"
-replace cood = "zzz" if coo == "98"
-replace cood = "zzz" if coo == ""
+replace cood = "z" if coo == "99"
+replace cood = "z" if coo == "98"
+replace cood = "z" if coo == ""
 
 bysort id (cood): gen oops = (cood[1] != cood[_n])
 bysort id (cood): replace cood = cood[1] if oops == 1
@@ -30,7 +32,7 @@ drop oops oops_
 
 *keep 1 per student
 bysort id : keep if _n == 1
-replace cood = "." if cood == "zzz"
+replace cood = "." if cood == "z"
 
 *clean race
 replace race = "AS" if race == "HP"

@@ -8,6 +8,10 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 *main in
 use `in', clear
 
+drop if first_term_PhD>66
+drop if last_term_PhD>66
+drop if last_term_PhD < first_term_PhD
+drop if first_term_PhD < 25
 
 ***************************************************************************
 *Clean up sample
@@ -240,7 +244,7 @@ codebook mean_per_international if programtag
 gen typically_usb=(mean_per_international<=.230443)
 
 *save
-save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample_Bdta",replace
+save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample_B.dta",replace
 ********************************************************************************
 
 *Preferred sample is STEM AND size>9 only

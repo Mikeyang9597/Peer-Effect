@@ -10,7 +10,7 @@ use `degree', clear
 *drop ssn_pseudo person_key term 
 
 *rename
-rename higher_ed_pseudo_id id
+rename ssn_pseudo id
 rename academic_program_key pgrm_code
 destring pgrm_code, replace
 
@@ -35,3 +35,8 @@ gen term_earned = term_index
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_degree.dta",replace
 ********************************************************************************
+
+
+
+
+

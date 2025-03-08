@@ -17,7 +17,8 @@ rename _merge PhD_merge
 rename term_earned term_earned_phd
 
 *generate variable for ever completes PhD
-egen everPhD=max(PhD_merge==3), by(person_inst)
+egen everPhD=max(PhD_merge == 2), by(person_inst)
+
 *Calculate yrs-to-degree for PhD
 gen yrstoPhD=(term_earned_phd-first_term_PhD+1)/4
 

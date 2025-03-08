@@ -30,7 +30,6 @@ merge m:1 yr_num term_code using `term_index'
 keep if _merge==3
 drop _merge
 
-
 *revise first and last term variables now that I've dropped non-doctorates
 rename first_term first_term_GRD
 rename last_term last_term_GRD

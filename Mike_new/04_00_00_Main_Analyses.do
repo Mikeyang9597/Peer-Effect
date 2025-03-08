@@ -2,6 +2,8 @@
 
 *Input files:
 local main "$mydir\clean_mike\Data_Preferred_Sample.dta"
+local main_A "$mydir\clean_mike\Data_Preferred_Sample_A.dta"
+local main_B "$mydir\clean_mike\Data_Preferred_Sample_B.dta"
 local robust "$mydir\clean_mike\Data_for_Robustness.dta"
 local allyrs "$mydir\clean_mike\Data_all_Years.dta"
 
@@ -14,6 +16,11 @@ global FEs "i.first_term_PhD i.cip_inst"
 
 *Make list of CIP Codes and main characteristics
 *Include only those programs in the main estimation sample
+
+use `main', clear
+keep if pgrm_cipcode == 510202
+drop if pgrm_code_admit == -2
+
 
 *main in
 use `main', clear
@@ -38,7 +45,6 @@ summ STEM cip_cohort_size cip_num_female cip_per_female ratioFM if cohort_tag==1
 *Panel C: Full Sample, All Years
 use `allyrs', clear
 summ STEM cip_cohort_size cip_num_female cip_per_female ratioFM if cohort_tag==1
-
 
 ***************************************************************************
 * Table 3: Summary Statistics by Gender
@@ -65,6 +71,33 @@ foreach f in 0 1 {
     summ firstQgpa firstYrgpa if female == `f'
 }
 
+***************************************************************************
+* Table 3_B: Summary Statistics by Gender
+***************************************************************************
+
+use `main_B', clear  
+
+* 추가 변수 생성
+gen dropout_by6 = 1 - persist_to_yr7
+gen enrolledafter6 = persist_to_yr7 - PhDin6
+
+foreach f in 0 1 {
+    di "--------------------------------------------------"
+    di "Summary Statistics for international == `f'"
+    di "--------------------------------------------------"
+
+    * Outcome variables
+    summ PhDin6 yrstoPhD dropout_by6 enrolledafter6 yrs_enrolled_PhD if international == `f'
+    
+    * Demographics/Controls
+    summ age international if international == `f'
+    
+    * Grades
+    summ firstQgpa firstYrgpa if international == `f'
+}
+
+
+
 
 ***************************************************************************
 *Table 4: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
@@ -72,15 +105,42 @@ foreach f in 0 1 {
 use `main', clear  
 *Run using 3 different definitions of cohort gender composition
 local gender_comp "cip_per_fem_peers ratioFM cip_num_fem_peers"
-foreach mainvar of local gender_comp {
-	quietly probit PhDin6 c.`mainvar'##i.female  $controls $FEs, cluster(cip_inst) 
+
+	local mainvar_label ""
+	if `mainvar' == "cip_per_fem_peers" local mainvar_label == "b1"
+	else if `mainvar' == "ratioFM" local mainvar_label == "b2" 
+	else if `mainvar' == "cip_num_fem_peers" local mainvar_label == "b3"
+
+foreach mainvar of local gender_comp {	
+	eststo: quietly probit PhDin6 c.`mainvar'##i.female  $controls $FEs, cluster(cip_inst) 
 	*Effect of no female peers on female student
-	margins, dydx(i.female) atmeans at(`mainvar'==0)
+	quietly margins, dydx(i.female) atmeans at(`mainvar'==0)
+	estimates store `mainvar_label'
 	*Effect of addtl female peers on male students and female students separately
-	margins, dydx(`mainvar' ) atmeans over(female) post
+	quietly margins, dydx(`mainvar' ) atmeans over(female) post
+	estimates store `mainvar_label'
 	*Differential effect of addtl female peers on female students vs. male students
 	lincom _b[`mainvar':1.female] - _b[`mainvar':0.female]
 }
+
+esttab b1 b2 b3 
+
+***************************************************************************
+*Table 4B: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
+***************************************************************************
+use `main_B', clear  
+*Run using 3 different definitions of cohort gender composition
+local int_comp "cip_per_int_peers ratioIM cip_num_int_peers"
+foreach mainvar of local int_comp {
+	quietly probit PhDin6 c.`mainvar'##i.international $controls $FEs, cluster(cip_inst) 
+	*Effect of no int peers on int student
+	margins, dydx(i.international) atmeans at(`mainvar'==0)
+	*Effect of addtl int peers on domestic students and int students separately
+	margins, dydx(`mainvar' ) atmeans over(international) post 
+	*Differential effect of addtl female peers on female students vs. male students
+	lincom _b[`mainvar':1.international] - _b[`mainvar':0.international]
+}
+
 
 ***************************************************************************
 *Table 5: Effect of Cohort Gender Composition on Ph.D. Persistence

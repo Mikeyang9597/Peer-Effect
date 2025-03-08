@@ -8,7 +8,7 @@ local term_index "$mydir\clean_mike\term_index.dta"
 use `main_in', clear
 
 *drop 
-*drop ssn_pseudo person_key
+drop higher_ed_pseudo_id person_key
 
 *keep only GRD & PHD
 keep if admission_area_code == "GRD"
@@ -19,7 +19,7 @@ drop if campus_code != institution_code
 drop admission* student* main*
 
 *rename
-rename higher_ed_pseudo_id id
+rename ssn_pseudo id
 rename calendar_year yr_num
 rename term term_code
 rename institution_code inst_code
@@ -33,8 +33,9 @@ drop _merge
 egen first_term=min(term_index), by(id inst_code)
 egen last_term=max(term_index), by(id inst_code)
 
-*keep only grad students who first enrolled SM05 or later
-drop if first_term<25 
+drop if first_term>66
+drop if last_term>66
+drop if first_term < 25
 
 *Generate GPA
 gen gpa = cum_gpa_quality_points / cum_credit_hours_earned
@@ -44,7 +45,7 @@ drop if gpa == .
 rename academic_program_key pgrm_code
 destring pgrm_code, replace
 
-drop cum* term_key special* subsidy* institution_level* institution*
+drop cum* term_key special* subsidy* institution_level* institution* fiscal_year 
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_main.dta",replace
 ********************************************************************************
