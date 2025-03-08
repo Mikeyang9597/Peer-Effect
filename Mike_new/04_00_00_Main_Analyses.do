@@ -18,8 +18,19 @@ global FEs "i.first_term_PhD i.cip_inst"
 *Include only those programs in the main estimation sample
 
 use `main', clear
+use `robust', clear
+
+* audio out
+keep if pgrm_cipcode == 510204
+* audio out
+keep if pgrm_cipcode == 512202 
+*econ in
+keep if pgrm_cipcode == 450601
+* bio in
+keep if pgrm_cipcode == 269999
+* audio out
 keep if pgrm_cipcode == 510202
-drop if pgrm_code_admit == -2
+
 
 
 *main in

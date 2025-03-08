@@ -7,12 +7,10 @@ local term_index "$mydir\clean_mike\term_index.dta"
 use `degree', clear
 
 *drop 
-*drop ssn_pseudo person_key term 
+drop higher_ed_pseudo_id person_key term 
 
 *rename
 rename ssn_pseudo id
-rename academic_program_key pgrm_code
-destring pgrm_code, replace
 
 *keep only GRD & PHD
 keep if admission_area_code == "GRD"

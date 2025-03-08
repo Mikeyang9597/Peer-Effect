@@ -8,11 +8,6 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 *main in
 use `in', clear
 
-drop if first_term_PhD>66
-drop if last_term_PhD>66
-drop if last_term_PhD < first_term_PhD
-drop if first_term_PhD < 25
-
 ***************************************************************************
 *Clean up sample
 ***************************************************************************
@@ -66,7 +61,6 @@ replace race="UK" if international==1
 *race indicators
 tab race, gen(race_ind)
 *create CIP code-inst code identifier for fixed effects
-egen pgrm_inst=group(pgrm_code_admit inst_code)
 egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
 egen field_inst=group(pgrm_cipfield2010_admit inst_code)
 
@@ -97,6 +91,9 @@ local j =`i'+1
 gen persist_to_yr`j'=(yrs_enrolled_PhD>`i' | everPhD==1 )
 replace persist_to_yr`j'=. if first_term_PhD>66-4*(`i')
 }
+
+*drop if yrs_enrolled_PhD < 2
+
 **************************************************************
 * Create main treatment variables
 **************************************************************
@@ -214,43 +211,19 @@ egen cip_cohort_age=mean(age), by(pgrm_cipcode2010 inst_code first_term_PhD)
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 ********************************************************************************
 
-
-
 *Main sample is 2005-2009 (cohorts for whom Phdin6 is defined)
 drop if first_term_PhD>42
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace
 ********************************************************************************
+***************************************************************
 
 *Preferred sample is STEM AND size>9 only
+keep if STEM==1
 drop if mean_cohort_size<=9
 *Define Typically Male/Typically Female Sample
 egen programtag=tag(cip_inst)
-codebook mean_per_international if programtag
-*%female: mean=37.7; median=36.7; p75=50.3
-gen typically_usa=(mean_per_international<=.200719)
-
-*save
-save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample_A.dta",replace
-********************************************************************************
-
-*Preferred sample is STEM AND size>9 only
-keep if STEM==1
-drop if mean_cohort_size<=9
-*Define Typically Male/Typically Female Sample
-codebook mean_per_international if programtag
-*%female: mean=37.7; median=36.7; p75=50.3
-gen typically_usb=(mean_per_international<=.230443)
-
-*save
-save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample_B.dta",replace
-********************************************************************************
-
-*Preferred sample is STEM AND size>9 only
-keep if STEM==1
-drop if mean_cohort_size<=9
-*Define Typically Male/Typically Female Sample
 codebook mean_per_female if programtag
 *%female: mean=37.7; median=36.7; p75=50.3
 gen typically_male=(mean_per_female<=.498425)

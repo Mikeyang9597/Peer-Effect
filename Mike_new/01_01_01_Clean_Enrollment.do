@@ -23,29 +23,31 @@ rename ssn_pseudo id
 rename calendar_year yr_num
 rename term term_code
 rename institution_code inst_code
+drop if id == .
 
 *merge with term index
 merge m:1 yr_num term_code using `term_index'
 keep if _merge==3
 drop _merge
 
+************************
+* 2005 - 2015
+drop if term_index > 66
+drop if term_index < 25
+************************
+
 *tag first and last term of enrollment
 egen first_term=min(term_index), by(id inst_code)
 egen last_term=max(term_index), by(id inst_code)
 
-drop if first_term>66
-drop if last_term>66
-drop if first_term < 25
-
 *Generate GPA
 gen gpa = cum_gpa_quality_points / cum_credit_hours_earned
 drop if gpa == .
+drop if gpa == 0
+drop if cum_gpa_quality_points == 0
+drop if cum_credit_hours_earned == 0
 
-*rename prgm_code
-rename academic_program_key pgrm_code
-destring pgrm_code, replace
-
-drop cum* term_key special* subsidy* institution_level* institution* fiscal_year 
+drop academic_program_key cum* term_key special* subsidy* institution_level* institution* fiscal_year 
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_main.dta",replace
 ********************************************************************************
