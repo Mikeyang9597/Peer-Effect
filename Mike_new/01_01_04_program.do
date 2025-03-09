@@ -11,15 +11,15 @@ local pgrm_clean "$mydir\clean_mike\clean_cip.dta"
 
 use `main_in', clear
 
-rename cip_code pgrm_subj_code
+rename cip_code cipcode2010
 
 *Merge in field titles from program subject codes using CIP code crosswalks
 *first match CIP codes from before 2010
-destring pgrm_subj_code, replace
-merge m:1 pgrm_subj_code using `CIP2010'
+destring cipcode2010, replace
+merge m:1 cipcode2010 using `CIP2010'
 keep if _merge==3
-drop disciplinearea _merge
-rename pgrm_subj_code pgrm_cipcode2010
+drop _merge
+rename cipcode2010 pgrm_cipcode2010
 rename subjecttitle ciptitle2010
 rename ciptitle2010 pgrm_ciptitle2010
 rename subjectfield2010 pgrm_cipfield2010

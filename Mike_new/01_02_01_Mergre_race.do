@@ -12,11 +12,17 @@ merge m:1 id using `race'
 keep if _merge == 3
 drop _merge
 
-*Note: for some reason the degree level codes in the academic program file are incorrect for OHSU in AU2011
-*Therefore, change the term to SP2012 for these obs only
 gen hold=(inst_code=="OHSU" & yr_num==2011 & term_code=="AU")
 replace term_code="SP" if hold==1
 replace yr_num=2012 if hold==1
+
+gen hold2=((yr_num==2015 & term_code!="SP") | yr_num==2016)
+replace yr_num=yr_num-1 if hold2==1
+
+replace term_code="AU" if hold==1
+replace yr_num=2011 if hold==1
+replace yr_num=yr_num+1 if hold2==1
+drop hold hold2
 
 drop term_index
 *merge with term index
@@ -24,19 +30,6 @@ merge m:1 yr_num term_code using `term_index'
 keep if _merge==3
 drop _merge
 
-*Program information only goes through 2014-2015 school-years
-*Backdate 2015-2016 school-year to match in merge
-*change year and term for 2015-2016 obs so that they match
-gen hold2=((yr_num==2015 & term_code!="SP") | yr_num==2016)
-replace yr_num=yr_num-1 if hold2==1
-replace term_code="AU" if hold==1
-replace yr_num=2011 if hold==1
-replace yr_num=yr_num+1 if hold2==1
-drop hold hold2 term_index
-*merge with term index
-merge m:1 yr_num term_code using `term_index'
-keep if _merge==3
-drop _merge
 
 *revise first and last term variables now that I've dropped non-doctorates
 rename first_term first_term_GRD

@@ -26,10 +26,13 @@ drop _merge
 *keep only 1st degree
 bysort id (term_index): keep if _n==1
 *keep only needed data
-keep id degree*  campus* institution* pgrm* ipeds* credit* cip* term_index
+keep id degree*  campus* institution* ipeds* credit* cip* term_index
 
 *generate term_earned
 gen term_earned = term_index
+
+drop if term_earned < 25
+drop if term_earned > 66
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_degree.dta",replace
 ********************************************************************************
