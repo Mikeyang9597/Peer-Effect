@@ -7,6 +7,13 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 
 *main in
 use `in', clear
+drop if pgrm_cipcode == 512308
+drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 512201
+drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 511599
+drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 260701
+drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 510201
+drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 510202
+drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 510204
 
 ***************************************************************************
 *Clean up sample

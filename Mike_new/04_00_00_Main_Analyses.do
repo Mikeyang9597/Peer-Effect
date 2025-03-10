@@ -17,23 +17,11 @@ global FEs "i.first_term_PhD i.cip_inst"
 *Make list of CIP Codes and main characteristics
 *Include only those programs in the main estimation sample
 
-use `main', clear
-use `robust', clear
-
-* audio out
-keep if pgrm_cipcode == 510204
-* audio out
-keep if pgrm_cipcode == 512202 
-*econ in
-keep if pgrm_cipcode == 450601
-* bio in
-keep if pgrm_cipcode == 269999
-* audio out
-keep if pgrm_cipcode == 510202
-
-
-
 *main in
+use `main', clear
+keep if pgrm_cipcode == 512201
+keep if pgrm_cipcode == 510701
+
 use `main', clear
 collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size mean_per_female, by(pgrm_cipcode inst_code)
 collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size mean_per_female (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)

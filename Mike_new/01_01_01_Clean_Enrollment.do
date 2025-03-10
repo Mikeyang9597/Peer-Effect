@@ -38,11 +38,6 @@ egen last_term=max(term_index), by(id inst_code)
 drop if first_term < 25
 drop if first_term > 66
 
-************************
-* 2005 - 2015
-drop if term_index > 66
-************************
-
 *Generate GPA
 gen gpa = cum_gpa_quality_points / cum_credit_hours_earned
 drop if gpa == .

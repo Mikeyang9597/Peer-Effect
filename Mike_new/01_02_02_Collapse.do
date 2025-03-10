@@ -7,8 +7,6 @@ local term_index "$mydir\clean_mike\term_index.dta"
 *data in
 use `in', clear
 
-drop if gpa > 4
-
 * 1st and last gpa
 bysort person_inst (term_index): gen firstQgpa=gpa[1]
 bysort person_inst (term_index): gen lastQgpa=gpa[_N]
@@ -26,7 +24,7 @@ rename yr_num current_yr_num
 rename term_code current_term_code
 rename first_term_PhD term_index
 merge m:1 term_index using `term_index'
-keep if _merge==3
+drop if _merge==2
 drop _merge
 gen temp=gpa if current_yr_num==yr_num+1 & current_term_code=="SP"
 egen firstYrgpa=min(temp), by(person_inst)
