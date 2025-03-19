@@ -15,7 +15,7 @@ use `in', clear
 merge m:1 id using `degree'
 drop if _merge == 2
 rename _merge PhD_merge
-rename term_earned term_earned_phd
+rename term_earned term_earned_PhD
 
 merge m:1 id using `degree_MA'
 drop if _merge == 2
@@ -25,8 +25,12 @@ rename _merge MA_merge
 egen everPhD=max(PhD_merge==3), by(person_inst)
 *generate variable for ever completes PhD
 egen everMA=max(MA_merge==3), by(person_inst)
+replace everMA = 0 if (term_earned_MA) < first_term_PhD
 *Calculate yrs-to-degree for PhD
-gen yrstoPhD=(term_index-first_term_PhD+1)/4
+gen yrstoPhD=(term_earned_PhD-first_term_PhD+1)/4
+
+*Drop Doctoral degrees earned before PhD enrollment started
+drop if term_earned_PhD<first_term_PhD
 
 *Flag students who earn multiple PhDs
 duplicates tag person_inst, gen(multiplePhD)

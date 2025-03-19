@@ -18,9 +18,12 @@ global FEs "i.first_term_PhD i.cip_inst"
 *Include only those programs in the main estimation sample
 
 *main in
-use `main', clear
-keep if pgrm_cipcode == 512201
-keep if pgrm_cipcode == 510701
+use `allyrs', clear
+*keep first_term_PhD everPhD everMA yrs_enrolled_PhD pgrm_cipcode2010
+keep if pgrm_cipcode2010 == 510202
+*tab everPhD
+*drop if everPhD == 0 & everMA ==1 & persist_to_yr2 == 0
+*tab everPhD
 
 use `main', clear
 collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size mean_per_female, by(pgrm_cipcode inst_code)
@@ -70,32 +73,6 @@ foreach f in 0 1 {
     summ firstQgpa firstYrgpa if female == `f'
 }
 
-***************************************************************************
-* Table 3_B: Summary Statistics by Gender
-***************************************************************************
-
-use `main_B', clear  
-
-* 추가 변수 생성
-gen dropout_by6 = 1 - persist_to_yr7
-gen enrolledafter6 = persist_to_yr7 - PhDin6
-
-foreach f in 0 1 {
-    di "--------------------------------------------------"
-    di "Summary Statistics for international == `f'"
-    di "--------------------------------------------------"
-
-    * Outcome variables
-    summ PhDin6 yrstoPhD dropout_by6 enrolledafter6 yrs_enrolled_PhD if international == `f'
-    
-    * Demographics/Controls
-    summ age international if international == `f'
-    
-    * Grades
-    summ firstQgpa firstYrgpa if international == `f'
-}
-
-
 
 
 ***************************************************************************
@@ -125,9 +102,27 @@ foreach mainvar of local gender_comp {
 esttab b1 b2 b3 
 
 ***************************************************************************
+*Table 4: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
+***************************************************************************
+use `main', clear 
+*Run using 3 different definitions of cohort gender composition
+local gender_comp "cip_per_fem_peers"
+foreach mainvar of local gender_comp {
+	quietly probit PhDin6 c.`mainvar'##i.female  $controls $FEs, cluster(cip_inst) 
+	*Effect of no female peers on female student
+	margins, dydx(i.female) atmeans at(`mainvar'==0)
+	*Effect of addtl female peers on male students and female students separately
+	margins, dydx(`mainvar' ) atmeans over(female) post
+	*Differential effect of addtl female peers on female students vs. male students
+	lincom _b[`mainvar':1.female] - _b[`mainvar':0.female]
+}
+
+
+
+***************************************************************************
 *Table 4B: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
 ***************************************************************************
-use `main_B', clear  
+use `main', clear 
 *Run using 3 different definitions of cohort gender composition
 local int_comp "cip_per_int_peers ratioIM cip_num_int_peers"
 foreach mainvar of local int_comp {

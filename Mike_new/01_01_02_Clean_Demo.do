@@ -16,7 +16,8 @@ drop if birth_yr == .
 rename ssn_pseudo id
 rename country_of_origin_desc cood
 rename country_of_origin coo
-rename nonresident_alien_flag int_
+gen international = 1 if nonresident_alien_flag == "Y"
+replace international = 0 if nonresident_alien_flag == "N"
 
 *sort coo
 replace cood = "z" if coo == "99"

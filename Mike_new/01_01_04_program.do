@@ -20,10 +20,8 @@ merge m:1 cipcode2010 using `CIP2010'
 keep if _merge==3
 drop _merge
 rename cipcode2010 pgrm_cipcode2010
-rename subjecttitle ciptitle2010
-rename ciptitle2010 pgrm_ciptitle2010
+rename subjecttitle2010 pgrm_ciptitle2010
 rename subjectfield2010 pgrm_cipfield2010
-gen subjectfield2010 = pgrm_cipfield2010
 rename stemdesignation pgrm_STEM
 
 

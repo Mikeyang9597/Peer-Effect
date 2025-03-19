@@ -37,12 +37,13 @@ rename current_term_index term_index
 ***keep only 1 obs per person-institution***
 keep if term_index==first_term_PhD
 
+
 ***Re-name variables that change over time to reflect that I've only kept their first observation***
 foreach var of varlist yr_num term_code term_num pgrm* {
 rename `var' `var'_admit
 }
 
 ***Drop unnecessary variables***
-drop gpa campus_key ipeds*
+drop gpa campus_key ipeds* term_index
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\merged_main_indiv.dta",replace

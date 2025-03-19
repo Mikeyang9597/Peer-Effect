@@ -7,13 +7,18 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 
 *main in
 use `in', clear
-drop if pgrm_cipcode == 512308
-drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 512201
-drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 511599
-drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 260701
-drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 510201
-drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 510202
-drop if everPhD == 0 & everMA ==1 & pgrm_cipcode == 510204
+
+*drop if academic_intention_code == "08"
+*drop if academic_intention_code == "05"
+*drop if academic_intention_code == "04"
+*drop if academic_intention_code == "06"
+*drop if academic_intention_code == "07"
+
+drop residency* living* incarcerated* campus* term_num* first_term_GRD last_term_GRD cip_title academic_intention*
+
+*(Not a PhD program) no PhD awarded
+*egen not_PhD = max(everPhD), by(pgrm_cipcode2010 inst_code)
+*drop if not_PhD == 0
 
 ***************************************************************************
 *Clean up sample
@@ -31,6 +36,7 @@ replace yrstoPhD=yrstoPhD-.25 if term_code=="SM"
 
 ***Drop Youngstown and Medical U***
 drop if inst_code=="YNGS" | inst_code=="MCOT"
+drop term_code*
 
 ***Drop transfer students***
 *Also calculate % transfer in a program so that we can drop high-transfer programs later
@@ -54,23 +60,22 @@ replace STEM=0 if pgrm_STEM_admit=="No Levels"
 destring birth_yr, replace
 gen age=yr_num_admit-birth_yr
 gen age2=age*age
+drop yr_num_admit birth_yr
 *Gender variable
 gen female = 1 if sex == "F"
 replace female = 0 if sex == "M"
 drop sex
 *international variable
-gen international=race=="NR"
 *encode string variables
 encode pgrm_cipfield2010_admit, gen(field_num)
 encode inst_code, gen(inst_num)
 *replace race=unknown for international students
-replace race="UK" if international==1
+replace race = "UK" if race == "NR"
 *race indicators
 tab race, gen(race_ind)
 *create CIP code-inst code identifier for fixed effects
 egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
 egen field_inst=group(pgrm_cipfield2010_admit inst_code)
-
 
 
 **************************************************************
@@ -99,7 +104,8 @@ gen persist_to_yr`j'=(yrs_enrolled_PhD>`i' | everPhD==1 )
 replace persist_to_yr`j'=. if first_term_PhD>66-4*(`i')
 }
 
-*drop if yrs_enrolled_PhD < 2
+*drop if yrs_enrolled_PhD <= 1
+*drop if everPhD == 0 & everMA == 1 & yrs_enrolled_PhD <= 1
 
 **************************************************************
 * Create main treatment variables

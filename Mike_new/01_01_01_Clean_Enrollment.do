@@ -31,27 +31,33 @@ keep if _merge==3
 drop _merge
 
 
+* Replicate Gender Peer
+* drop if before SM 2015
+drop if term_index < 25
+* drop if after 2016 
+drop if term_index > 68
+
+
 *tag first and last term of enrollment
 egen first_term=min(term_index), by(id inst_code)
 egen last_term=max(term_index), by(id inst_code)
 
 drop if first_term < 25
-drop if first_term > 66
 
 *Generate GPA
 gen gpa = cum_gpa_quality_points / cum_credit_hours_earned
 drop if gpa == .
-drop if cum_gpa_quality_points == 0
+*drop if cum_gpa_quality_points == 0
 
 *drop werid gpa
-gen first_yr = 0
-replace first_yr = 1 if term_index == first_term
+*gen first_yr = 0
+*replace first_yr = 1 if term_index == first_term
 
-gen cut = 0
-replace cut = 1 if cum_credit_hours_earned > 25 
+*gen cut = 0
+*replace cut = 1 if cum_credit_hours_earned > 25 
 
-gen overgpa = 0
-replace overgpa=1 if cut == 1 & first_yr ==1
+*gen overgpa = 0
+*replace overgpa=1 if cut == 1 & first_yr ==1
 
 drop academic_program_key cum* term_key special* subsidy* institution_level* institution* fiscal_year 
 
