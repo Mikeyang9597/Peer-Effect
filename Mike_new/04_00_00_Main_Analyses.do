@@ -18,12 +18,9 @@ global FEs "i.first_term_PhD i.cip_inst"
 *Include only those programs in the main estimation sample
 
 *main in
-use `allyrs', clear
-*keep first_term_PhD everPhD everMA yrs_enrolled_PhD pgrm_cipcode2010
-keep if pgrm_cipcode2010 == 510202
-*tab everPhD
-*drop if everPhD == 0 & everMA ==1 & persist_to_yr2 == 0
-*tab everPhD
+use `main', clear
+keep if pgrm_cipcode2010 == 420101
+
 
 use `main', clear
 collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size mean_per_female, by(pgrm_cipcode inst_code)
@@ -124,7 +121,7 @@ foreach mainvar of local gender_comp {
 ***************************************************************************
 use `main', clear 
 *Run using 3 different definitions of cohort gender composition
-local int_comp "cip_per_int_peers ratioIM cip_num_int_peers"
+local int_comp "cip_per_int_peers"
 foreach mainvar of local int_comp {
 	quietly probit PhDin6 c.`mainvar'##i.international $controls $FEs, cluster(cip_inst) 
 	*Effect of no int peers on int student
@@ -141,7 +138,7 @@ foreach mainvar of local int_comp {
 ***************************************************************************
 use `main', clear  
 *For 5 outcome variables: persistence through year 2...6
-local yvars "persist_to_yr2 persist_to_yr3 persist_to_yr4 persist_to_yr5 persist_to_yr6"
+local yvars "persist_to_yr2"
 foreach y of local yvars {
 	quietly probit `y' c.cip_per_fem_peers##i.female  $controls $FEs, cluster(cip_inst) 
 	*Effect of no female peers on female student

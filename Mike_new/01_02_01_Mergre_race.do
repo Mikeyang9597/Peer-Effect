@@ -22,14 +22,12 @@ replace yr_num=yr_num-1 if hold2==1
 replace term_code="AU" if hold==1
 replace yr_num=2011 if hold==1
 replace yr_num=yr_num+1 if hold2==1
-drop hold hold2
+drop hold hold2 term_index
 
-drop term_index
 *merge with term index
 merge m:1 yr_num term_code using `term_index'
 keep if _merge==3
 drop _merge
-
 
 *revise first and last term variables now that I've dropped non-doctorates
 rename first_term first_term_GRD

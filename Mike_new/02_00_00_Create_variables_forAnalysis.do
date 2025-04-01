@@ -8,17 +8,7 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 *main in
 use `in', clear
 
-*drop if academic_intention_code == "08"
-*drop if academic_intention_code == "05"
-*drop if academic_intention_code == "04"
-*drop if academic_intention_code == "06"
-*drop if academic_intention_code == "07"
-
 drop residency* living* incarcerated* campus* term_num* first_term_GRD last_term_GRD cip_title academic_intention*
-
-*(Not a PhD program) no PhD awarded
-*egen not_PhD = max(everPhD), by(pgrm_cipcode2010 inst_code)
-*drop if not_PhD == 0
 
 ***************************************************************************
 *Clean up sample
@@ -234,7 +224,7 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",repla
 
 *Preferred sample is STEM AND size>9 only
 keep if STEM==1
-drop if mean_cohort_size<=9
+drop if mean_cohort_size<=7
 *Define Typically Male/Typically Female Sample
 egen programtag=tag(cip_inst)
 codebook mean_per_female if programtag
