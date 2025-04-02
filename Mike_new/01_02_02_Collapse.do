@@ -7,6 +7,8 @@ local term_index "$mydir\clean_mike\term_index.dta"
 *data in
 use `in', clear
 
+drop if term_index > 64
+
 * 1st and last gpa
 bysort person_inst (term_index): gen firstQgpa=gpa[1]
 bysort person_inst (term_index): gen lastQgpa=gpa[_N]

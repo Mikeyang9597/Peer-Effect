@@ -85,7 +85,7 @@ drop if degree_level_desc!="Doctoral degree"
 
 ********************************************************************************
 * Ensure all unique prog_cip_code values are retained while keeping all academic_program_key values
-duplicates drop academic_program_key term_index, force
+duplicates drop academic_program_key, force
 
 rename term_index d_term_index
 drop yr* term*
@@ -101,7 +101,7 @@ destring academic_program_key, replace
 
 drop if academic_program_key == -2
 
-merge m:1 academic_program_key term_index using `pgrm_clean'
+merge m:1 academic_program_key using `pgrm_clean'
 keep if _merge == 3
 drop _merge
 rename cip_code cipcode2010

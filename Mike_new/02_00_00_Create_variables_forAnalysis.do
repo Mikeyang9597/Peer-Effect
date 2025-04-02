@@ -94,8 +94,8 @@ gen persist_to_yr`j'=(yrs_enrolled_PhD>`i' | everPhD==1 )
 replace persist_to_yr`j'=. if first_term_PhD>66-4*(`i')
 }
 
-*drop if yrs_enrolled_PhD <= 1
-*drop if everPhD == 0 & everMA == 1 & yrs_enrolled_PhD <= 1
+gen china = 0
+replace china = 1 if cood == "China"
 
 **************************************************************
 * Create main treatment variables
@@ -113,7 +113,7 @@ foreach x of local groups {
     * Create cohort size variable and log size
     egen `x'_cohort_size=count(id), by(`groupvar' inst_code first_term_PhD)
     
-    * Create cohort gender composition variables
+    * Gender composition
     egen `x'_num_female=sum(female), by(`groupvar' inst_code first_term_PhD)
     gen `x'_num_fem_peers=`x'_num_female
     replace `x'_num_fem_peers=`x'_num_female-1 if female==1
@@ -121,7 +121,7 @@ foreach x of local groups {
     gen `x'_per_fem_peers=`x'_num_female/(`x'_cohort_size-1) if female==0
     replace `x'_per_fem_peers=(`x'_num_female-1)/(`x'_cohort_size-1) if female==1
 
-    * Create cohort international composition variables
+    * International composition
     egen `x'_num_international=sum(international), by(`groupvar' inst_code first_term_PhD)
     gen `x'_num_int_peers=`x'_num_international
     replace `x'_num_int_peers=`x'_num_international-1 if international==1
@@ -129,17 +129,29 @@ foreach x of local groups {
     gen `x'_per_int_peers=`x'_num_international/(`x'_cohort_size-1) if international==0
     replace `x'_per_int_peers=(`x'_num_international-1)/(`x'_cohort_size-1) if international==1
 
-    * Create cohort gender variables for second year of program
+    * China composition
+    egen `x'_num_china = sum(china), by(`groupvar' inst_code first_term_PhD)
+    gen `x'_num_china_peers = `x'_num_china
+    replace `x'_num_china_peers = `x'_num_china - 1 if china == 1
+    gen `x'_per_china = `x'_num_china / `x'_cohort_size
+    gen `x'_per_china_peers = `x'_num_china / (`x'_cohort_size - 1) if china == 0
+    replace `x'_per_china_peers = (`x'_num_china - 1) / (`x'_cohort_size - 1) if china == 1
+
+    * Year 2 Gender
     egen `x'_num_female_yr2=sum(female*persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
     egen `x'_cohort_size_yr2=sum(persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
     gen `x'_per_female_yr2=`x'_num_female_yr2/(`x'_cohort_size_yr2)
 
-    * Create cohort international variables for second year of program
+    * Year 2 International
     egen `x'_num_international_yr2=sum(international*persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
     gen `x'_per_international_yr2=`x'_num_international_yr2/(`x'_cohort_size_yr2)
+
+    * Year 2 China
+    egen `x'_num_china_yr2=sum(china*persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
+    gen `x'_per_china_yr2 = `x'_num_china_yr2 / `x'_cohort_size_yr2
 }
 
-* Generate lag and lead cohort gender variables
+* Lag & Lead gender composition
 sort cip_inst first_term_PhD
 by cip_inst: gen lag_per_female=cip_per_female_yr2[_n-1] if first_term_PhD==first_term_PhD[_n-1]+4
 bysort cip_inst first_term_PhD: replace lag_per_female=lag_per_female[1]
@@ -153,7 +165,7 @@ gsort cip_inst -first_term_PhD
 by cip_inst: gen lead_cohort_size=cip_cohort_size[_n-1] if first_term_PhD==first_term_PhD[_n-1]-4
 bysort cip_inst first_term_PhD (lead_cohort_size): replace lead_cohort_size=lead_cohort_size[1]
 
-* Generate lag and lead cohort international variables
+* Lag & Lead international
 sort cip_inst first_term_PhD
 by cip_inst: gen lag_per_international=cip_per_international_yr2[_n-1] if first_term_PhD==first_term_PhD[_n-1]+4
 bysort cip_inst first_term_PhD: replace lag_per_international=lag_per_international[1]
@@ -167,34 +179,48 @@ gsort cip_inst -first_term_PhD
 by cip_inst: gen lead_cohort_size_international=cip_cohort_size[_n-1] if first_term_PhD==first_term_PhD[_n-1]-4
 bysort cip_inst first_term_PhD (lead_cohort_size_international): replace lead_cohort_size_international=lead_cohort_size_international[1]
 
-* Create min, mean, and max cipcode size
+* Lag & Lead China
+sort cip_inst first_term_PhD
+by cip_inst: gen lag_per_china=cip_per_china_yr2[_n-1] if first_term_PhD==first_term_PhD[_n-1]+4
+bysort cip_inst first_term_PhD: replace lag_per_china=lag_per_china[1]
+
+gsort cip_inst -first_term_PhD
+by cip_inst: gen lead_per_china=cip_per_china[_n-1] if first_term_PhD==first_term_PhD[_n-1]-4
+bysort cip_inst first_term_PhD (lead_per_china): replace lead_per_china=lead_per_china[1]
+
+* Cohort stats
 egen cohort_tag=tag(cip_inst first_term_PhD)
 egen mean_cohort_size=mean(cip_cohort_size) if cohort_tag==1, by(pgrm_cipcode2010_admit inst_code)
 bysort cip_inst (cohort_tag): replace mean_cohort_size=mean_cohort_size[_N]
 egen min_cohort_size=min(cip_cohort_size), by(pgrm_cipcode2010_admit inst_code)
 egen max_cohort_size=max(cip_cohort_size), by(pgrm_cipcode2010_admit inst_code)
 
-* Create mean percent female & deviations from mean
+* Female deviation
 egen mean_per_female=mean(cip_per_female) if cohort_tag==1, by(pgrm_cipcode2010_admit inst_code)
 bysort cip_inst (cohort_tag): replace mean_per_female=mean_per_female[_N]
 gen demeaned_per_female=cip_per_female-mean_per_female
 egen above_avg_female=cut(demeaned_per_female), at(-1, 0 ,1) label
 
-* Create mean percent international & deviations from mean
+* International deviation
 egen mean_per_international=mean(cip_per_international) if cohort_tag==1, by(pgrm_cipcode2010_admit inst_code)
 bysort cip_inst (cohort_tag): replace mean_per_international=mean_per_international[_N]
 gen demeaned_per_international=cip_per_international-mean_per_international
 egen above_avg_international=cut(demeaned_per_international), at(-1, 0 ,1) label
 
-* Create ratio and logratio of women-to-men
+* China deviation
+egen mean_per_china=mean(cip_per_china) if cohort_tag==1, by(pgrm_cipcode2010_admit inst_code)
+bysort cip_inst (cohort_tag): replace mean_per_china=mean_per_china[_N]
+gen demeaned_per_china=cip_per_china-mean_per_china
+egen above_avg_china=cut(demeaned_per_china), at(-1, 0 ,1) label
+
+* Ratio & Log ratio
 gen ratioFM=cip_num_female/(cip_cohort_size-cip_num_female)
 gen logratio=log(ratioFM)
 
-* Create ratio and logratio of international-to-domestic
 gen ratioIM=cip_num_international/(cip_cohort_size-cip_num_international)
 gen logratioIM=log(ratioIM)
 
-* Deviations from mean for lag and lead cohorts
+* Lag/Lead deviations
 gen demeaned_lag_per_female=lag_per_female-mean_per_female
 gen demeaned_lead_per_female=lead_per_female-mean_per_female
 egen lag_above_avg_female=cut(demeaned_lag_per_female), at(-1, 0 ,1) label
@@ -204,6 +230,12 @@ gen demeaned_lag_per_international=lag_per_international-mean_per_international
 gen demeaned_lead_per_international=lead_per_international-mean_per_international
 egen lag_above_avg_international=cut(demeaned_lag_per_international), at(-1, 0 ,1) label
 egen lead_above_avg_international=cut(demeaned_lead_per_international), at(-1, 0 ,1) label
+
+gen demeaned_lag_per_china=lag_per_china-mean_per_china
+gen demeaned_lead_per_china=lead_per_china-mean_per_china
+egen lag_above_avg_china=cut(demeaned_lag_per_china), at(-1, 0 ,1) label
+egen lead_above_avg_china=cut(demeaned_lead_per_china), at(-1, 0 ,1) label
+
 
 
 
@@ -223,13 +255,11 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",repla
 ***************************************************************
 
 *Preferred sample is STEM AND size>9 only
-keep if STEM==1
-drop if mean_cohort_size<=7
+drop if mean_cohort_size<=9
 *Define Typically Male/Typically Female Sample
 egen programtag=tag(cip_inst)
 codebook mean_per_female if programtag
-*%female: mean=37.7; median=36.7; p75=50.3
-gen typically_male=(mean_per_female<=.498425)
+gen typically_male=(mean_per_female<=.427594)
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace

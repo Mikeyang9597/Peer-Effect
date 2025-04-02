@@ -31,6 +31,7 @@ keep id degree*  campus* institution* ipeds* credit* cip* term_index
 *generate term_earned
 gen term_earned = term_index
 
+drop if term_index > 64
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_degree.dta",replace
 ********************************************************************************
@@ -68,6 +69,7 @@ keep id degree*  campus* institution* ipeds* credit* cip* term_index
 
 *generate term_earned
 gen term_earned_MA = term_index
+drop if term_index > 64
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_degree_MA.dta",replace
 ********************************************************************************

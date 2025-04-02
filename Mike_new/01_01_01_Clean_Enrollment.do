@@ -34,6 +34,7 @@ egen first_term=min(term_index), by(id inst_code)
 egen last_term=max(term_index), by(id inst_code)
 
 drop if first_term < 25
+
 *Generate GPA 
 gen gpa = .
 replace gpa = cum_gpa_quality_points / cum_credit_hours
