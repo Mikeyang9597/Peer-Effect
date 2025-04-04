@@ -18,7 +18,6 @@ global FEs "i.first_term_PhD i.cip_inst"
 
 *main in
 use `main', clear
-keep if pgrm_cipcode == 450601
 collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size mean_per_female, by(pgrm_cipcode inst_code)
 collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size mean_per_female (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)
 sort mean_per_female 
@@ -91,7 +90,7 @@ foreach mainvar of local gender_comp {
 ***************************************************************************
 use `main', clear 
 *Run using 3 different definitions of cohort gender composition
-local int_comp "cip_per_int_peers ratioIM cip_num_int_peers"
+local int_comp "cip_per_int_peers"
 foreach mainvar of local int_comp {
 	quietly probit PhDin6 c.`mainvar'##i.international $controls_int $FEs, cluster(cip_inst) 
 	*Effect of no int peers on int student

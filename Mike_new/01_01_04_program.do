@@ -85,7 +85,7 @@ drop if degree_level_desc!="Doctoral degree"
 
 ********************************************************************************
 * Ensure all unique prog_cip_code values are retained while keeping all academic_program_key values
-duplicates drop academic_program_key, force
+duplicates drop academic_program_key campus_key, force
 
 rename term_index d_term_index
 drop yr* term*
@@ -97,7 +97,7 @@ save "$mydir\clean_mike\clean_pgrm", replace
 
 use `main_in', clear
 destring cip_code, replace
-destring academic_program_key, replace
+destring academic_program_key campus_key, replace
 
 drop if academic_program_key == -2
 

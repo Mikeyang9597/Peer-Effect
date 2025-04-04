@@ -255,7 +255,8 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",repla
 ***************************************************************
 
 *Preferred sample is STEM AND size>9 only
-drop if mean_cohort_size<=9
+keep if STEM==1
+drop if mean_cohort_size<=7
 *Define Typically Male/Typically Female Sample
 egen programtag=tag(cip_inst)
 codebook mean_per_female if programtag
