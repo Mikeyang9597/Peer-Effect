@@ -6,7 +6,9 @@ use `race', clear
 
 *drop 
 drop higher_ed_pseudo_id person_key
-drop begin* end* first* active* dob ada*
+
+*drop 
+drop if begin_fiscal_year < 2010
 
 *drop missing data
 keep if inlist(sex, "F", "M")
@@ -27,7 +29,7 @@ bysort id (cood): replace cood = cood[1] if oops == 1
 bysort id (cood): replace coo = coo[1] if oops == 1
 drop oops
 
-bysort id (year) : keep if _n == _N
+bysort id : keep if _n == 1
 replace cood = "." if cood == "zzz"
 
 *clean race
@@ -35,8 +37,7 @@ replace race = "AS" if race == "HP"
 replace race = "UK" if race == "MR"
 
 *drop
-drop zip* us* 
-*underprepared*
+drop zip* us* begin* end* first* active* dob ada* county* state*
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_race.dta",replace
 ********************************************************************************

@@ -8,7 +8,7 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 *main in
 use `in', clear
 
-drop incarcerated* campus* term_num* first_term_GRD last_term_GRD cip_title academic_intention*
+drop incarcerated* campus* first_term_GRD last_term_GRD cip_title academic_intention*
 
 ***************************************************************************
 *Clean up sample
@@ -71,18 +71,18 @@ egen field_inst=group(pgrm_cipfield2010_admit inst_code)
 **************************************************************
 *Create main outcome variables
 **************************************************************
-*Indicator for still enrolled in SP16
-gen stillenrolled=last_term_PhD>68
+*Indicator for still enrolled in SP23
+gen stillenrolled=last_term_PhD> 23
 replace stillenrolled=0 if everPhD==1
 *Indicator for dropout
 gen dropout=(everPhD==0)
 replace dropout=0 if stillenrolled==1
 *generate indicator for PhD within 5 years
 gen PhDin5=(everPhD==1 & yrstoPhD<=5)
-replace PhDin5=. if first_term_PhD>46
+replace PhDin5=. if first_term_PhD>75
 *generate indicator for PhD within 6 years
 gen PhDin6=(everPhD==1 & yrstoPhD<=6)
-replace PhDin6=. if first_term_PhD>=46
+replace PhDin6=. if first_term_PhD>=75
 
 **Persistence variables:
 *indicator for makes it to yr 2, yr3, etc
@@ -91,7 +91,7 @@ replace yrs_enrolled_PhD=(last_term_PhD-first_term_PhD+1)/4 if dropout==1
 forval i = 1/6 {
 local j =`i'+1
 gen persist_to_yr`j'=(yrs_enrolled_PhD>`i' | everPhD==1 )
-replace persist_to_yr`j'=. if first_term_PhD>66-4*(`i')
+replace persist_to_yr`j'=. if first_term_PhD>95-4*(`i')
 }
 
 gen china = 0
@@ -246,8 +246,8 @@ egen cip_cohort_age=mean(age), by(pgrm_cipcode2010 inst_code first_term_PhD)
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 ********************************************************************************
 
-*Main sample is 2005-2009 (cohorts for whom Phdin6 is defined)
-drop if first_term_PhD>42
+*Main sample is 2009-2023 (cohorts for whom Phdin6 is defined)
+drop if first_term_PhD>75
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace
@@ -260,7 +260,7 @@ drop if mean_cohort_size<=7
 *Define Typically Male/Typically Female Sample
 egen programtag=tag(cip_inst)
 codebook mean_per_female if programtag
-gen typically_male=(mean_per_female<=.427594)
+gen typically_male=(mean_per_female<=.435594)
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace

@@ -13,9 +13,8 @@ drop higher_ed_pseudo_id person_key
 *keep only GRD & PHD
 keep if admission_area_code == "GRD"
 drop if campus_code != institution_code
-
-*drop 
 drop admission* main*
+
 
 *rename
 rename ssn_pseudo id
@@ -33,7 +32,8 @@ drop _merge
 egen first_term=min(term_index), by(id inst_code)
 egen last_term=max(term_index), by(id inst_code)
 
-drop if first_term < 25
+*(2009년도 드랍 기준으로 고쳐야함)
+drop if first_term < 47
 
 *Generate GPA 
 gen gpa = .
@@ -44,7 +44,10 @@ drop if gpa == .
 gen international = 0
 replace international = 1 if residency_status == "N"
 
-drop term_key special* subsidy* institution_level* institution* fiscal_year student_rank* cum* residency* term_code yr_num
+bysort id (student_rank_code): gen _oops = (student_rank_code[1] != student_rank_code[_n])
+
+
+drop term_key special* subsidy* institution_level* institution* cum* residency* fiscal*
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_main.dta",replace
 ********************************************************************************
