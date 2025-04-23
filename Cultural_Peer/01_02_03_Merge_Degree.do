@@ -1,4 +1,4 @@
-*01_02_02_Merge_program_degree
+*01_02_03_Merge_program_degree
 
 *Input files:
 local in "$mydir\clean_mike\merged_main_indiv.dta"

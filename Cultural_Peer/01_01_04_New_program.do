@@ -16,13 +16,8 @@ destring cip_code, replace
 destring academic_program_key, replace
 rename program_code pgrm_subj_code
 
-*drop 
-gen temp = int(begin_term_key / 10)
-gen yr_num = real(substr(string(temp, "%03.0f"), 1, 1) + "0" + substr(string(temp, "%03.0f"), 2, .))
-drop if yr_num < 2009
-
 * Drop unnecessary variables related to campus and activity status
-keep degree_level_code cip_code academic_program_key degree_level_desc campus_key degree_name_code yr_num
+keep degree_level_code cip_code academic_program_key degree_level_desc campus_key degree_name_code
 drop if academic_program_key == -2
 
 drop if degree_level_code == "01"

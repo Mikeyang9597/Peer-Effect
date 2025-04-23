@@ -32,7 +32,7 @@ drop _merge
 egen first_term=min(term_index), by(id inst_code)
 egen last_term=max(term_index), by(id inst_code)
 
-*(2009년도 드랍 기준으로 고쳐야함)
+*drop before 2005-SM
 drop if first_term < 25
 
 *Generate GPA 
@@ -40,9 +40,14 @@ gen gpa = .
 replace gpa = cum_gpa_quality_points / cum_credit_hours
 drop if gpa == .
 
+*Gen International
+gen international = 0
+replace international = 1 if residency_status == "N"
+
 bysort id (student_rank_code): gen _oops = (student_rank_code[1] != student_rank_code[_n])
 
-drop term_key special* subsidy* institution_level* institution* residency* fiscal*
+
+drop term_key special* subsidy* institution_level* institution* cum* residency* fiscal*
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_main.dta",replace
 ********************************************************************************

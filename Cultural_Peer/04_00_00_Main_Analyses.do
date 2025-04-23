@@ -65,7 +65,7 @@ foreach f in 0 1 {
     summ firstQgpa firstYrgpa if female == `f'
 }
 
-
+*local gender_comp "cip_per_fem_peers ratioFM cip_num_fem_peers"
 ***************************************************************************
 *Table 4: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
 ***************************************************************************
@@ -82,7 +82,6 @@ foreach mainvar of local gender_comp {
 	*Differential effect of addtl female peers on female students vs. male students
 	lincom _b[`mainvar':1.female] - _b[`mainvar':0.female]
 }
-
 
 
 ***************************************************************************
@@ -107,7 +106,7 @@ foreach mainvar of local int_comp {
 use `main', clear 
 
 * Run using 3 different definitions of cohort China composition
-local china_comp "cip_per_china_peers ratioCM cip_num_china_peers"
+local china_comp "cip_per_china_peers"
 
 foreach mainvar of local china_comp {
 	quietly probit PhDin6 c.`mainvar'##i.china $controls $FEs, cluster(cip_inst) 
@@ -154,6 +153,8 @@ forval g=0/1 {
 	*Differential effect of addtl female peers on female students vs. male students
 	lincom _b[cip_per_fem_peers:1.female] - _b[cip_per_fem_peers:0.female]
 }
+
+
 
 *Second use definition of typically male programs: all programs in Engineering, Mathematics & Statistics, and Physics
 gen typically_male2 = 0

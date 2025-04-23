@@ -13,7 +13,7 @@ drop higher_ed_pseudo_id person_key term
 rename ssn_pseudo id
 
 *keep only GRD & PHD
-*keep if admission_area_code == "GRD"
+keep if admission_area_code == "GRD"
 keep if inlist(level_completed_code,"17")
 
 *merge with term index
@@ -52,7 +52,7 @@ drop higher_ed_pseudo_id person_key term
 rename ssn_pseudo id
 
 *keep only GRD & PHD
-*keep if admission_area_code == "GRD"
+keep if admission_area_code == "GRD"
 keep if inlist(level_completed_code, "07")
 
 *merge with term index

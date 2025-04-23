@@ -1,4 +1,4 @@
-*01_02_03_Collapse_to_individual.do
+*01_02_02_Collapse_to_individual.do
 
 *Input files:
 local in "$mydir\clean_mike\merged_main.dta"

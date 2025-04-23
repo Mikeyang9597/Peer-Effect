@@ -56,12 +56,11 @@ gen female = 1 if sex == "F"
 replace female = 0 if sex == "M"
 drop sex
 *international variable
-gen international=race=="NR"
 *encode string variables
 encode pgrm_cipfield2010_admit, gen(field_num)
 encode inst_code, gen(inst_num)
 *replace race=unknown for international students
-replace race="UK" if international==1
+replace race = "UK" if race == "NR"
 *race indicators
 tab race, gen(race_ind)
 *create CIP code-inst code identifier for fixed effects
@@ -249,6 +248,7 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 
 *Main sample is 2009-2023 (cohorts for whom Phdin6 is defined)
 drop if first_term_PhD>42
+
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace
 ********************************************************************************

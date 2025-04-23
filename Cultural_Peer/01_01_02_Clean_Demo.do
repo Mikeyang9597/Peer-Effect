@@ -7,9 +7,6 @@ use `race', clear
 *drop 
 drop higher_ed_pseudo_id person_key
 
-*drop 
-drop if begin_fiscal_year < 2010
-
 *drop missing data
 keep if inlist(sex, "F", "M")
 drop if birth_yr == .
