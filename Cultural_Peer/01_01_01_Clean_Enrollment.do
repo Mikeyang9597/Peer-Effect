@@ -34,6 +34,8 @@ egen last_term=max(term_index), by(id inst_code)
 
 *(2009년도 드랍 기준으로 고쳐야함)
 drop if first_term < 25
+drop if term_index > 68
+
 
 *Generate GPA 
 gen gpa = .
