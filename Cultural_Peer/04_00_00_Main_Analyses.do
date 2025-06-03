@@ -65,6 +65,29 @@ foreach f in 0 1 {
     summ firstQgpa firstYrgpa if female == `f'
 }
 
+
+use `main', clear  
+
+* 추가 변수 생성
+gen dropout_by6 = 1 - persist_to_yr7
+gen enrolledafter6 = persist_to_yr7 - PhDin6
+
+foreach f in 0 1 {
+    di "--------------------------------------------------"
+    di "Summary Statistics for Female == `f'"
+    di "--------------------------------------------------"
+**#
+
+    * Outcome variables
+    summ PhDin6 yrstoPhD dropout_by6 enrolledafter6 yrs_enrolled_PhD if female == `f'
+    
+    * Demographics/Controls
+    summ age international nonresident if female == `f'
+    
+    * Grades
+    summ firstQgpa firstYrgpa if female == `f'
+}
+
 *local gender_comp "cip_per_fem_peers ratioFM cip_num_fem_peers"
 ***************************************************************************
 *Table 4: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years

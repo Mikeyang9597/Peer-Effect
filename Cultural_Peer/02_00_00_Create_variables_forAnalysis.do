@@ -8,7 +8,9 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 *main in
 use `in', clear
 
-drop incarcerated* campus* first_term_GRD last_term_GRD cip_title academic_intention*
+drop if degree_level_code == ""
+
+drop first_term_GRD last_term_GRD cip_title academic_intention*
 
 ***************************************************************************
 *Clean up sample
@@ -35,7 +37,6 @@ egen per_transfer=mean(transfer_from), by(pgrm_cipcode2010_admit inst_code)
 *codebook per_transfer if temptag==1
 *Drop programs with >=20% transfer students, but can show robustness for dropping more or less
 *For future robustness checks uncomment this line:
-*gen todrop=(per_transfer>=`1')
 gen todrop=(per_transfer>=.20)
 drop if transfer_from==1
 drop if todrop==1
@@ -56,12 +57,13 @@ gen female = 1 if sex == "F"
 replace female = 0 if sex == "M"
 drop sex
 *international variable
-gen international=race=="NR"
+gen international = 0
+replace international = 1 if nonresident_alien_flag == "Y"
 *encode string variables
 encode pgrm_cipfield2010_admit, gen(field_num)
 encode inst_code, gen(inst_num)
 *replace race=unknown for international students
-replace race="UK" if international==1
+*replace race="UK" if international==1
 *race indicators
 tab race, gen(race_ind)
 *create CIP code-inst code identifier for fixed effects
@@ -258,9 +260,11 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",repla
 keep if STEM==1
 drop if mean_cohort_size<=9
 *Define Typically Male/Typically Female Sample
-egen programtag=tag(cip_inst)
+egen programtag = tag(cip_inst)
 codebook mean_per_female if programtag
 gen typically_male=(mean_per_female<=.435594)
+
+drop cip_code
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace
