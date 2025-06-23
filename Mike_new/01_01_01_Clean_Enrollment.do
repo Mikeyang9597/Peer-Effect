@@ -13,8 +13,6 @@ drop higher_ed_pseudo_id person_key
 *keep only GRD & PHD
 keep if admission_area_code == "GRD"
 drop if campus_code != institution_code
-
-*drop 
 drop admission* main*
 
 *rename
@@ -33,18 +31,16 @@ drop _merge
 egen first_term=min(term_index), by(id inst_code)
 egen last_term=max(term_index), by(id inst_code)
 
+*drop if first term before 2009 SM
 drop if first_term < 25
+* drop if term after 2023 SP
+drop if term_index > 102
 
 *Generate GPA 
 gen gpa = .
 replace gpa = cum_gpa_quality_points / cum_credit_hours
-drop if gpa == .
 
-*Gen International
-gen international = 0
-replace international = 1 if residency_status == "N"
-
-drop term_key special* subsidy* institution_level* institution* fiscal_year student_rank* cum* residency* term_code yr_num
+drop special* subsidy* institution_level* institution* residency* fiscal* campus_code term_key student_rank_desc cum* ipeds* campus_ipeds_id living* incarcerated* campus_type* cip_title
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_main.dta",replace
 ********************************************************************************

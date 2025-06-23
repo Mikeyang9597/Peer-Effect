@@ -38,7 +38,6 @@ rename term_index term_begin
 rename yr_num yr_begin
 drop term_code temp term
 
-
 replace end_term_key = 2242 if end_term_key == 9999
 gen term = mod(end_term_key, 10)
 
@@ -67,24 +66,7 @@ gen term_count = term_end - term_begin + 1
 expand term_count
 bysort academic_program_key term_begin (term_begin): gen term_index = term_begin + _n - 1
 
-*drop if academic_program_key == -2
-*drop if degree_level_code == "01"
-*drop if degree_level_code == "02"
-*drop if degree_level_code == "04"
-*drop if degree_level_code == "03"
-*drop if degree_level_code == "05"
-*drop if degree_level_code == "06"
-*drop if degree_level_code == "08"
-*drop if degree_level_code == "10"
-*drop if degree_level_code == "11"
-*drop if degree_level_code == "XX"
-*drop if degree_level_code == "T1"
-*drop if degree_level_code == "TA"
-*drop if degree_level_code == "T2"
-*drop if degree_level_code == "TM"
-*drop if degree_level_code == "G1"
-*drop if degree_level_code == "G2"
-*replace degree_level_code = "09" if degree_level_code == "17"
+drop if term_index > 68
 
 *mark the programs that switch from code 09=PHD to 18 or 19 for PhDs
 egen ever18=max(degree_level_code=="18"), by(academic_program_key campus_key)

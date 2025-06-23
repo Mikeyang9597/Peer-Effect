@@ -40,12 +40,8 @@ drop if first_term < 25
 *Generate GPA 
 gen gpa = .
 replace gpa = cum_gpa_quality_points / cum_credit_hours
-drop if gpa == .
 
-drop special* subsidy* institution_level* institution* residency* fiscal* campus_code term_key student_rank_desc cum* ipeds* campus_ipeds_id living* incarcerated* campus_type*
+drop special* subsidy* institution_level* institution* residency* fiscal* campus_code term_key student_rank_desc cum* ipeds* campus_ipeds_id living* incarcerated* campus_type* cip_title
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_main.dta",replace
 ********************************************************************************
-
-*sort id term_index
-*browse id term_index first_term degree_level_code inst_code academic_program_key student_rank_desc

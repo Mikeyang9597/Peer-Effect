@@ -33,7 +33,7 @@ replace race = "UK" if race == "MR"
 bysort id : keep if _n == 1
 
 *drop
-drop zip* us* begin* end* first* active* dob ada* county* state*
+drop zip* us* begin* end* first* active* dob ada* county* state* aian baa race_unk_flag record* asian white nhopi academic* ethnicity*
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_race.dta",replace
 ********************************************************************************

@@ -8,15 +8,14 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 *main in
 use `in', clear
 
-drop if degree_level_code == ""
-
-drop first_term_GRD last_term_GRD cip_title academic_intention*
+drop last_term_GRD
 
 ***************************************************************************
 *Clean up sample
 ***************************************************************************
 ***Drop students who start in Winter or Spring
-drop if term_code_admit=="WI" | term_code_admit=="SP"
+drop if term_code_admit=="WI"
+drop if term_code_admit=="SP"
 ***Re-assign summer starts to fall
 replace first_term_PhD=first_term_PhD+1 if term_code_admit=="SM"
 *For summer starters, reassign firstQgpa to fall
@@ -57,15 +56,15 @@ gen female = 1 if sex == "F"
 replace female = 0 if sex == "M"
 drop sex
 *international variable
-gen international = 0
-replace international = 1 if nonresident_alien_flag == "Y"
+gen international=race=="NR"
+*gen international = 0
+*replace international = 1 if nonresident_alien_flag == "Y"
 *encode string variables
 encode pgrm_cipfield2010_admit, gen(field_num)
 encode inst_code, gen(inst_num)
 *replace race=unknown for international students
-*replace race="UK" if international==1
-*race indicators
-tab race, gen(race_ind)
+replace race="UK" if international==1
+tab race
 *create CIP code-inst code identifier for fixed effects
 egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
 egen field_inst=group(pgrm_cipfield2010_admit inst_code)
@@ -75,7 +74,7 @@ egen field_inst=group(pgrm_cipfield2010_admit inst_code)
 *Create main outcome variables
 **************************************************************
 *Indicator for still enrolled in SP23
-gen stillenrolled=last_term_PhD> 68
+gen stillenrolled=last_term_PhD > 68
 replace stillenrolled=0 if everPhD==1
 *Indicator for dropout
 gen dropout=(everPhD==0)
@@ -263,8 +262,6 @@ drop if mean_cohort_size<=9
 egen programtag = tag(cip_inst)
 codebook mean_per_female if programtag
 gen typically_male=(mean_per_female<=.435594)
-
-drop cip_code
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace

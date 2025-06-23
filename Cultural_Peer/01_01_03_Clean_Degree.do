@@ -23,6 +23,8 @@ merge m:1 yr_num term_code using `term_index'
 keep if _merge == 3
 drop _merge
 
+drop if term_index > 68
+
 *keep only 1st degree
 bysort id (term_index): keep if _n==1
 *keep only needed data
@@ -32,6 +34,8 @@ keep id degree*  campus* institution* ipeds* credit* cip* term_index
 gen term_earned = term_index
 
 drop if term_index < 25
+
+keep id term_earned
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_degree.dta",replace
 ********************************************************************************
@@ -62,6 +66,8 @@ merge m:1 yr_num term_code using `term_index'
 keep if _merge == 3
 drop _merge
 
+drop if term_index > 68
+
 *keep only 1st degree
 bysort id (term_index): keep if _n==1
 *keep only needed data
@@ -71,6 +77,8 @@ keep id degree*  campus* institution* ipeds* credit* cip* term_index
 gen term_earned_MA = term_index
 
 drop if term_index < 25
+
+keep id term_earned_MA
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_degree_MA.dta",replace
 ********************************************************************************

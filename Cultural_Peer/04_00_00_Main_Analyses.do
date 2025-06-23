@@ -5,8 +5,8 @@ local main "$mydir\clean_mike\Data_Preferred_Sample.dta"
 local robust "$mydir\clean_mike\Data_for_Robustness.dta"
 local allyrs "$mydir\clean_mike\Data_all_Years.dta"
 
-global controls "cip_cohort_size c.age##c.age international race_ind1-race_ind4 race_ind6"
-global controls_int "cip_cohort_size c.age##c.age female race_ind1-race_ind4 race_ind6"
+global controls "cip_cohort_size c.age##c.age international"
+global controls_int "cip_cohort_size c.age##c.age female"
 global FEs "i.first_term_PhD i.cip_inst"
 
 ***************************************************************************
@@ -20,7 +20,7 @@ global FEs "i.first_term_PhD i.cip_inst"
 use `main', clear
 collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size mean_per_female, by(pgrm_cipcode inst_code)
 collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size mean_per_female (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)
-sort mean_per_female 
+sort mean_per_female
 
 
 ***************************************************************************
@@ -66,35 +66,13 @@ foreach f in 0 1 {
 }
 
 
-use `main', clear  
-
-* 추가 변수 생성
-gen dropout_by6 = 1 - persist_to_yr7
-gen enrolledafter6 = persist_to_yr7 - PhDin6
-
-foreach f in 0 1 {
-    di "--------------------------------------------------"
-    di "Summary Statistics for Female == `f'"
-    di "--------------------------------------------------"
-**#
-
-    * Outcome variables
-    summ PhDin6 yrstoPhD dropout_by6 enrolledafter6 yrs_enrolled_PhD if female == `f'
-    
-    * Demographics/Controls
-    summ age international nonresident if female == `f'
-    
-    * Grades
-    summ firstQgpa firstYrgpa if female == `f'
-}
-
-*local gender_comp "cip_per_fem_peers ratioFM cip_num_fem_peers"
 ***************************************************************************
 *Table 4: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
-***************************************************************************
-use `main', clear 
-*Run using 3 different definitions of cohort gender composition
 *local gender_comp "cip_per_fem_peers ratioFM cip_num_fem_peers"
+***************************************************************************
+
+use $main, clear
+*Run using 3 different definitions of cohort gender composition
 local gender_comp "cip_per_fem_peers"
 foreach mainvar of local gender_comp {
 	quietly probit PhDin6 c.`mainvar'##i.female  $controls $FEs, cluster(cip_inst) 

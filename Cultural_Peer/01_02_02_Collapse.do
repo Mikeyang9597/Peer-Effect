@@ -44,6 +44,6 @@ rename `var' `var'_admit
 }
 
 ***Drop unnecessary variables***
-drop gpa term_index
+drop gpa
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\merged_main_indiv.dta",replace

@@ -1,4 +1,4 @@
-*01_02_03_Collapse_to_individual.do
+*01_02_02_Collapse_to_individual.do
 
 *Input files:
 local in "$mydir\clean_mike\merged_main.dta"
@@ -6,8 +6,6 @@ local term_index "$mydir\clean_mike\term_index.dta"
 
 *data in
 use `in', clear
-
-drop if term_index > 64
 
 * 1st and last gpa
 bysort person_inst (term_index): gen firstQgpa=gpa[1]
@@ -41,11 +39,11 @@ keep if term_index==first_term_PhD
 
 
 ***Re-name variables that change over time to reflect that I've only kept their first observation***
-foreach var of varlist yr_num term_code term_num pgrm* {
+foreach var of varlist yr_num term_code pgrm* {
 rename `var' `var'_admit
 }
 
 ***Drop unnecessary variables***
-drop gpa campus_key ipeds* term_index
+drop gpa
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\merged_main_indiv.dta",replace

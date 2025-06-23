@@ -5,8 +5,8 @@ local main "$mydir\clean_mike\Data_Preferred_Sample.dta"
 local robust "$mydir\clean_mike\Data_for_Robustness.dta"
 local allyrs "$mydir\clean_mike\Data_all_Years.dta"
 
-global controls "cip_cohort_size c.age##c.age international race_ind1-race_ind4 race_ind6"
-global controls_int "cip_cohort_size c.age##c.age female race_ind1-race_ind4 race_ind6"
+global controls "cip_cohort_size c.age##c.age international"
+global controls_int "cip_cohort_size c.age##c.age female"
 global FEs "i.first_term_PhD i.cip_inst"
 
 ***************************************************************************
@@ -20,7 +20,7 @@ global FEs "i.first_term_PhD i.cip_inst"
 use `main', clear
 collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size mean_per_female, by(pgrm_cipcode inst_code)
 collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size mean_per_female (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)
-sort mean_per_female 
+sort mean_per_female
 
 
 ***************************************************************************
@@ -68,10 +68,11 @@ foreach f in 0 1 {
 
 ***************************************************************************
 *Table 4: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
-***************************************************************************
-use `main', clear 
-*Run using 3 different definitions of cohort gender composition
 *local gender_comp "cip_per_fem_peers ratioFM cip_num_fem_peers"
+***************************************************************************
+
+use $main, clear
+*Run using 3 different definitions of cohort gender composition
 local gender_comp "cip_per_fem_peers"
 foreach mainvar of local gender_comp {
 	quietly probit PhDin6 c.`mainvar'##i.female  $controls $FEs, cluster(cip_inst) 
@@ -82,7 +83,6 @@ foreach mainvar of local gender_comp {
 	*Differential effect of addtl female peers on female students vs. male students
 	lincom _b[`mainvar':1.female] - _b[`mainvar':0.female]
 }
-
 
 
 ***************************************************************************
@@ -107,7 +107,7 @@ foreach mainvar of local int_comp {
 use `main', clear 
 
 * Run using 3 different definitions of cohort China composition
-local china_comp "cip_per_china_peers ratioCM cip_num_china_peers"
+local china_comp "cip_per_china_peers"
 
 foreach mainvar of local china_comp {
 	quietly probit PhDin6 c.`mainvar'##i.china $controls $FEs, cluster(cip_inst) 
@@ -154,6 +154,8 @@ forval g=0/1 {
 	*Differential effect of addtl female peers on female students vs. male students
 	lincom _b[cip_per_fem_peers:1.female] - _b[cip_per_fem_peers:0.female]
 }
+
+
 
 *Second use definition of typically male programs: all programs in Engineering, Mathematics & Statistics, and Physics
 gen typically_male2 = 0
