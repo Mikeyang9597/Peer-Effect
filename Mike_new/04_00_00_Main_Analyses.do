@@ -71,7 +71,7 @@ foreach f in 0 1 {
 *local gender_comp "cip_per_fem_peers ratioFM cip_num_fem_peers"
 ***************************************************************************
 
-use $main, clear
+use `main', clear
 *Run using 3 different definitions of cohort gender composition
 local gender_comp "cip_per_fem_peers"
 foreach mainvar of local gender_comp {

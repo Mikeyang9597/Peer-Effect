@@ -22,7 +22,6 @@ rename term term_code
 rename institution_code inst_code
 drop if id == .
 
-
 *merge with term index
 merge m:1 yr_num term_code using `term_index'
 keep if _merge==3
@@ -37,11 +36,7 @@ egen last_term=max(term_index), by(id inst_code)
 * keep 2005 to 2016
 drop if first_term < 25
 
-*Generate GPA 
-gen gpa = .
-replace gpa = cum_gpa_quality_points / cum_credit_hours
-
-drop special* subsidy* institution_level* institution* residency* fiscal* campus_code term_key student_rank_desc cum* ipeds* campus_ipeds_id living* incarcerated* campus_type* cip_title
+drop special* subsidy* institution_level* institution* residency* fiscal* campus_code term_key student_rank_desc ipeds* campus_ipeds_id living* incarcerated* campus_type* cip_title
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_main.dta",replace
 ********************************************************************************

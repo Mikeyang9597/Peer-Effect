@@ -36,11 +36,7 @@ drop if first_term < 25
 * drop if term after 2023 SP
 drop if term_index > 102
 
-*Generate GPA 
-gen gpa = .
-replace gpa = cum_gpa_quality_points / cum_credit_hours
-
-drop special* subsidy* institution_level* institution* residency* fiscal* campus_code term_key student_rank_desc cum* ipeds* campus_ipeds_id living* incarcerated* campus_type* cip_title
+drop special* subsidy* institution_level* institution* residency* fiscal* campus_code term_key student_rank_desc ipeds* campus_ipeds_id living* incarcerated* campus_type* cip_title
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\clean_main.dta",replace
 ********************************************************************************

@@ -68,7 +68,7 @@ drop if degree_level_code==""
 ************************************************
 *keep doctorates (09, 17) but drop programs that switch from 09 to 18 or 19 or if degree_code!=PHD
 keep if degree_level_code=="09" | degree_level_code=="17"
-drop if ever18 | ever19
+*drop if ever18 | ever19
 drop ever18 ever19
 
 
@@ -79,9 +79,6 @@ egen first_term_PhD=min(term_index), by(id inst_code)
 egen last_term_PhD=max(term_index), by(id inst_code)
 egen transfer_from_other_level=max(first_term_PhD!=first_term_GRD), by(id inst_code)
 egen transfer_to_other_level=max(last_term_PhD!=last_term_GRD), by(id inst_code)
-
-sort id term_index 
-*browse id term_index first_term_GRD first_term_P inst_code transfer_from_other_level cip_code degree_level_code
 
 **Drop terms where no credit hours are attempted
 *drop if gpa==.
@@ -104,6 +101,11 @@ rename cipcode2010 pgrm_cipcode2010
 rename subjecttitle2010 pgrm_ciptitle2010
 rename subjectfield2010 pgrm_cipfield2010
 rename stemdesignation pgrm_STEM
+
+gen gpa = .
+replace gpa = cum_gpa_quality_points / cum_credit_hours
+drop if gpa == .
+drop cum*
 
 compress
 
