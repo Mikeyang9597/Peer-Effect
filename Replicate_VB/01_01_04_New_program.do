@@ -66,8 +66,7 @@ gen term_count = term_end - term_begin + 1
 expand term_count
 bysort academic_program_key term_begin (term_begin): gen term_index = term_begin + _n - 1
 
-drop if term_index < 25
-drop if term_index > 102
+drop if term_index > 68
 
 *mark the programs that switch from code 09=PHD to 18 or 19 for PhDs
 egen ever18=max(degree_level_code=="18"), by(academic_program_key campus_key)

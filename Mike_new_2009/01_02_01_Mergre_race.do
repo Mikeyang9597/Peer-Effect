@@ -14,6 +14,10 @@ merge m:1 id using `race'
 keep if _merge == 3
 drop _merge
 
+*tabulate term_index if cood == "zz_Unknown"
+
+
+
 gen hold=(inst_code=="OHSU" & yr_num==2011 & term_code=="AU")
 replace term_code="SP" if hold==1
 replace yr_num=2012 if hold==1
@@ -62,22 +66,21 @@ replace degree_level_code=degree_level_code[_n-1] if degree_level_code=="" & id=
 drop if degree_level_code==""
 
 
+
 ************************************************
 *Only keep PhD students
 ************************************************
 *keep doctorates (09, 17) but drop programs that switch from 09 to 18 or 19 or if degree_code!=PHD
 keep if degree_level_code=="09" | degree_level_code=="17"
-*rop if ever18 | ever19
-drop ever18 ever19
 
 *revise first and last term variables now that I've dropped non-doctorates
 rename first_term first_term_GRD
 rename last_term last_term_GRD
 egen first_term_PhD=min(term_index), by(id inst_code)
 egen last_term_PhD=max(term_index), by(id inst_code)
-egen transfer_from_other_level=max(first_term_PhD!=first_term_GRD), by(id inst_code)
-egen transfer_to_other_level=max(last_term_PhD!=last_term_GRD), by(id inst_code)
 
+**Drop terms where no credit hours are attempted
+*drop if gpa==.
 *revise first term variable
 rename first_term_PhD first_term_nocredit
 egen first_term_PhD=min(term_index), by(id inst_code)
@@ -98,15 +101,12 @@ rename subjecttitle2010 pgrm_ciptitle2010
 rename subjectfield2010 pgrm_cipfield2010
 rename stemdesignation pgrm_STEM
 
-*Generate GPA 
 gen gpa = .
 replace gpa = cum_gpa_quality_points / cum_credit_hours
 drop if gpa == .
 drop cum*
-compress
 
-sort id term_index 
-browse id term_index first_term_GRD first_term_P inst_code transfer_from_other_level pgrm_cipcode2010 degree_level_code
+compress
 
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\merged_main.dta",replace
 

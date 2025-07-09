@@ -257,49 +257,11 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",repla
 
 *Preferred sample is STEM AND size>9 only
 keep if STEM==1
-drop if mean_cohort_size<=5
+drop if mean_cohort_size<=9
 *Define Typically Male/Typically Female Sample
 egen programtag = tag(cip_inst)
 codebook mean_per_female if programtag
 gen typically_male=(mean_per_female<=.435594)
-
-drop if pgrm_cipcode2010_admit == 141901
-drop if pgrm_cipcode2010_admit == 141001 & inst_code == "OHUN"
-drop if pgrm_cipcode2010_admit == 270101 & inst_code != "OHSU"
-drop if pgrm_cipcode2010_admit == 400801 & inst_code == "CINC"
-drop if pgrm_cipcode2010_admit == 400801 & inst_code == "KENT"
-drop if pgrm_cipcode2010_admit == 110501
-drop if pgrm_cipcode2010_admit == 140801
-drop if pgrm_cipcode2010_admit == 140101
-drop if pgrm_cipcode2010_admit == 143501
-drop if pgrm_cipcode2010_admit == 141301
-drop if pgrm_cipcode2010_admit == 260203
-
-
-
-drop if pgrm_cipcode2010_admit == 400501 & inst_code == "CLEV"
-drop if pgrm_cipcode2010_admit == 400501 & inst_code == "MIAM"
-drop if pgrm_cipcode2010_admit == 400501 & inst_code == "AKRN"
-drop if pgrm_cipcode2010_admit == 400501 & inst_code == "KENT"
-
-
-drop if pgrm_cipcode2010_admit == 140701 & inst_code == "AKRN"
-drop if pgrm_cipcode2010_admit == 269999 & inst_code == "CINC"
-drop if pgrm_cipcode2010_admit == 260804
-drop if pgrm_cipcode2010_admit == 260701
-drop if pgrm_cipcode2010_admit == 512201
-drop if pgrm_cipcode2010_admit == 260806
-drop if pgrm_cipcode2010_admit == 261301
-drop if pgrm_cipcode2010_admit == 260101
-drop if pgrm_cipcode2010_admit == 300101
-drop if pgrm_cipcode2010_admit == 420101 & inst_code == "TLDO"
-drop if pgrm_cipcode2010_admit == 420101 & inst_code == "BGSU"
-drop if pgrm_cipcode2010_admit == 420101 & inst_code == "MIAM"
-drop if pgrm_cipcode2010_admit == 512401
-drop if pgrm_cipcode2010_admit == 260401
-drop if pgrm_cipcode2010_admit == 450201
-drop if pgrm_cipcode2010_admit == 512308
-
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace

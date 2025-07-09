@@ -5,8 +5,8 @@ local main "$mydir\clean_mike\Data_Preferred_Sample.dta"
 local robust "$mydir\clean_mike\Data_for_Robustness.dta"
 local allyrs "$mydir\clean_mike\Data_all_Years.dta"
 
-global controls "cip_cohort_size c.age##c.age international race_ind1-race_ind4 race_ind6"
-global controls_int "cip_cohort_size c.age##c.age female race_ind1-race_ind4 race_ind6"
+global controls "cip_cohort_size c.age##c.age female race_ind1-race_ind4 race_ind6"
+global controls_age "cip_cohort_size female race_ind1-race_ind4 race_ind6"
 global FEs "i.first_term_PhD i.cip_inst"
 
 ***************************************************************************
@@ -30,15 +30,15 @@ sort mean_per_female
 *Cohort Characteristics
 *Panel A: Estimation sample
 use `main', clear
-summ STEM cip_cohort_size cip_num_female cip_per_female ratioFM if cohort_tag==1
+summ STEM cip_cohort_size cip_num_international cip_per_female if cohort_tag==1
 
 *Panel B: Estimation Sample + Non-STEM + Small Programs
 use `robust', clear
-summ STEM cip_cohort_size cip_num_female cip_per_female ratioFM if cohort_tag==1
+summ STEM cip_cohort_size cip_num_female cip_per_female if cohort_tag==1
 
 *Panel C: Full Sample, All Years
 use `allyrs', clear
-summ STEM cip_cohort_size cip_num_female cip_per_female ratioFM if cohort_tag==1
+summ STEM cip_cohort_size cip_num_female cip_per_female if cohort_tag==1
 
 ***************************************************************************
 * Table 3: Summary Statistics by Gender
@@ -65,34 +65,14 @@ foreach f in 0 1 {
     summ firstQgpa firstYrgpa if female == `f'
 }
 
-
 ***************************************************************************
-*Table 4: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
-*local gender_comp "cip_per_fem_peers ratioFM cip_num_fem_peers"
-***************************************************************************
-
-use `main', clear
-*Run using 3 different definitions of cohort gender composition
-local gender_comp "cip_per_fem_peers"
-foreach mainvar of local gender_comp {
-	quietly probit PhDin6 c.`mainvar'##i.female  $controls $FEs, cluster(cip_inst) 
-	*Effect of no female peers on female student
-	margins, dydx(i.female) atmeans at(`mainvar'==0)
-	*Effect of addtl female peers on male students and female students separately
-	margins, dydx(`mainvar' ) atmeans over(female) post
-	*Differential effect of addtl female peers on female students vs. male students
-	lincom _b[`mainvar':1.female] - _b[`mainvar':0.female]
-}
-
-
-***************************************************************************
-*Table 4B: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
+*Table 4A: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
 ***************************************************************************
 use `main', clear 
 *Run using 3 different definitions of cohort gender composition
 local int_comp "cip_per_int_peers"
 foreach mainvar of local int_comp {
-	quietly probit PhDin6 c.`mainvar'##i.international $controls_int $FEs, cluster(cip_inst) 
+	quietly probit PhDin6 c.`mainvar'##i.international $controls $FEs, cluster(cip_inst) 
 	*Effect of no int peers on int student
 	margins, dydx(i.international) atmeans at(`mainvar'==0)
 	*Effect of addtl int peers on domestic students and int students separately
@@ -102,28 +82,56 @@ foreach mainvar of local int_comp {
 }
 
 ***************************************************************************
-*Table 4B: Effect of Cohort China Composition on Ph.D. Completion Within 6 Years
+*Table 4B: DDD Chinese Peer
 ***************************************************************************
-use `main', clear 
 
-* Run using 3 different definitions of cohort China composition
-local china_comp "cip_per_china_peers"
+use `main', clear
 
-foreach mainvar of local china_comp {
-	quietly probit PhDin6 c.`mainvar'##i.china $controls $FEs, cluster(cip_inst) 
+local mainvar "cip_per_china_peers"
 
-	* Effect of no China peers on China student
-	margins, dydx(i.china) atmeans at(`mainvar'==0)
+    * DDD probit regression
+    quietly probit PhDin6 c.`mainvar'##i.international##i.china $controls $FEs, cluster(cip_inst)
 
-	* Effect of additional China peers on non-China and China students separately
-	margins, dydx(`mainvar') atmeans over(china) post 
+    * β₁: Int (non-Chinese) vs Domestic at 0% Chinese peers
+	margins, dydx(i.international) atmeans over(china) at(`mainvar'==0)
+		
+	* β1+B2: Chinese vs international at 0% Chinese peers
+	margins, dydx(i.china) atmeans over(international) at(`mainvar'==0)
+	
+	* β 3,4,5 : Peer effect diff: Chinese vs Intl non-Chinese"
+    margins, dydx(`mainvar') atmeans over(china international) post
+	lincom _b[`mainvar':0.china#1.international] - _b[`mainvar':0.china#0.international]
+	lincom _b[`mainvar':1.china#1.international] - _b[`mainvar':0.china#1.international]
 
-	* Differential effect of additional China peers on China students vs. non-China students
-	lincom _b[`mainvar':1.china] - _b[`mainvar':0.china]
+	
+	
+	use `main', clear 
+*Run using 3 different definitions of cohort gender composition
+local int_comp "per_same_county_peers"
+foreach mainvar of local int_comp {
+	probit PhDin6 c.`mainvar'##i.international $controls $FEs, cluster(cip_inst) 
+	*Effect of no int peers on int student
+	margins, dydx(i.international) atmeans at(`mainvar'==0)
+	*Effect of addtl int peers on domestic students and int students separately
+	margins, dydx(`mainvar' ) atmeans over(international) post 
+	*Differential effect of addtl female peers on female students vs. male students
+	lincom _b[`mainvar':1.international] - _b[`mainvar':0.international]
 }
 
+		use `main', clear 
+*Run using 3 different definitions of cohort gender composition
+local mainvar "cip_per_age30_peers"
+	probit PhDin6 c.`mainvar'##i.age30 $controls_age $FEs, cluster(cip_inst) 
+	*Effect of no int peers on int student
+	margins, dydx(i.age30) atmeans at(`mainvar'==0)
+	*Effect of addtl int peers on domestic students and int students separately
+	margins, dydx(`mainvar' ) atmeans over(age30) post 
+	*Differential effect of addtl female peers on female students vs. male students
+	lincom _b[`mainvar':1.age30] - _b[`mainvar':0.age30]
 
-
+	
+	
+	
 ***************************************************************************
 *Table 5: Effect of Cohort Gender Composition on Ph.D. Persistence
 ***************************************************************************

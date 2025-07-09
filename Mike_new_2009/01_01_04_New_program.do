@@ -66,17 +66,8 @@ gen term_count = term_end - term_begin + 1
 expand term_count
 bysort academic_program_key term_begin (term_begin): gen term_index = term_begin + _n - 1
 
-drop if term_index < 25
+drop if term_index < 40
 drop if term_index > 102
-
-*mark the programs that switch from code 09=PHD to 18 or 19 for PhDs
-egen ever18=max(degree_level_code=="18"), by(academic_program_key campus_key)
-egen ever19=max(degree_level_code=="19"), by(academic_program_key campus_key)
-
-replace degree_level_code = "17" if cip_code == 400501 & term_index == 56
-replace degree_level_code = "17" if cip_code == 190401 & term_index == 56
-replace degree_level_code = "17" if cip_code == 400201 & term_index == 56
-replace degree_level_code = "17" if cip_code == 500904 & term_index > 18
 
 * Ensure all unique prog_cip_code values are retained while keeping all academic_program_key values
 duplicates drop academic_program_key campus_key term_index ,force

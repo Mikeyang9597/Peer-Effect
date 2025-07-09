@@ -38,7 +38,7 @@ egen per_transfer=mean(transfer_from), by(pgrm_cipcode2010_admit inst_code)
 *For future robustness checks uncomment this line:
 gen todrop=(per_transfer>=.20)
 drop if transfer_from==1
-drop if todrop==1
+*drop if todrop==1
 
 **************************************************************
 *Clean up various control variables and identifiers
@@ -61,6 +61,7 @@ replace international = 1 if nonresident_alien_flag == "Y"
 *encode string variables
 encode pgrm_cipfield2010_admit, gen(field_num)
 encode inst_code, gen(inst_num)
+tab race, gen(race_ind)
 *create CIP code-inst code identifier for fixed effects
 egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
 egen field_inst=group(pgrm_cipfield2010_admit inst_code)
