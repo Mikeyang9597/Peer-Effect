@@ -15,8 +15,8 @@ drop last_term_GRD
 ***************************************************************************
 ***Re-assign cohort starts
 replace first_term_PhD=first_term_PhD+1 if term_code_admit=="SM"
-replace first_term_PhD=first_term_PhD-1 if term_code_admit=="WI"
-replace first_term_PhD=first_term_PhD-2 if term_code_admit=="SP"
+replace first_term_PhD=first_term_PhD+1 if term_code_admit=="WI"
+replace first_term_PhD=first_term_PhD+0 if term_code_admit=="SP"
 
 *For summer starters, reassign firstQgpa to fall
 replace firstQgpa=firstQgpa_AU if term_code=="SM"
@@ -169,9 +169,17 @@ gen unknown = 0
 replace unknown = 1 if cood == "zz_Unknown"
 egen per_unkown=mean(unknown), by(pgrm_cipcode2010_admit inst_code)
 codebook per_unkown
-gen todrop=(per_unkown>=.20)
+*gen todrop=(per_unkown>=.20)
 *drop if unknown==1
-drop if todrop==1
+*drop if todrop==1
+
+egen per_unkown_ = tag(pgrm_cipcode2010_admit inst_code)
+keep if per_unkown_ == 1
+
+codebook per_unkown
+
+
+
 
 
 *same_country_peer
@@ -179,30 +187,10 @@ bysort pgrm_cipcode2010_admit inst_code first_term_PhD cood: gen same_country_co
 replace same_country_count = . if unknown == 1
 gen same_country_share = same_country_count / cip_cohort_size
 gen same_country_peers = same_country_count - 1
-gen same_country_peer_share = same_country_peers / (cip_cohort_size - 1)
+gen same_country_peer_share = same_country_peers / (cip_cohort_size - 1 )
+*exlucde unknowns 
 rename same_country_peer_share per_same_county_peers
 
-
-
-
-
-*** Age peer
-* 나이 30세 이상 여부 더미 변수 생성
-gen age30 = age >= 28
-
-* 각 그룹 내 age30 인원 수
-egen cip_num_age30 = total(age30), by(inst_code first_term_PhD)
-
-* 본인을 제외한 peers 중 age30 인원 수
-gen cip_num_age30_peers = cip_num_age30
-replace cip_num_age30_peers = cip_num_age30 - 1 if age30 == 1
-
-* 그룹 내 age30 비율
-gen cip_per_age30 = cip_num_age30 / cip_cohort_size
-
-* 본인을 제외한 peers 중 age30 비율
-gen cip_per_age30_peers = cip_num_age30 / (cip_cohort_size - 1) if age30 == 0
-replace cip_per_age30_peers = (cip_num_age30 - 1) / (cip_cohort_size - 1) if age30 == 1
 
 
 
@@ -321,10 +309,6 @@ egen lag_above_avg_india=cut(demeaned_lag_per_india), at(-1, 0 ,1) label
 egen lead_above_avg_india=cut(demeaned_lead_per_india), at(-1, 0 ,1) label
 
 
-
-
-
-
 *Calculate average age for each program-cohort
 egen cip_cohort_age=mean(age), by(pgrm_cipcode2010 inst_code first_term_PhD)
 
@@ -333,7 +317,7 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 ********************************************************************************
 
 *Main sample is 2009-2023 (cohorts for whom Phdin6 is defined)
-drop if first_term_PhD>62
+drop if first_term_PhD>70
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace
 ********************************************************************************

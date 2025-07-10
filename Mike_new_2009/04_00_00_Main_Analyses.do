@@ -118,19 +118,7 @@ foreach mainvar of local int_comp {
 	lincom _b[`mainvar':1.international] - _b[`mainvar':0.international]
 }
 
-		use `main', clear 
-*Run using 3 different definitions of cohort gender composition
-local mainvar "cip_per_age30_peers"
-	probit PhDin6 c.`mainvar'##i.age30 $controls_age $FEs, cluster(cip_inst) 
-	*Effect of no int peers on int student
-	margins, dydx(i.age30) atmeans at(`mainvar'==0)
-	*Effect of addtl int peers on domestic students and int students separately
-	margins, dydx(`mainvar' ) atmeans over(age30) post 
-	*Differential effect of addtl female peers on female students vs. male students
-	lincom _b[`mainvar':1.age30] - _b[`mainvar':0.age30]
 
-	
-	
 	
 ***************************************************************************
 *Table 5: Effect of Cohort Gender Composition on Ph.D. Persistence
