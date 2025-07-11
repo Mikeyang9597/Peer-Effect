@@ -18,9 +18,9 @@ global FEs "i.first_term_PhD i.cip_inst"
 
 *main in
 use `main', clear
-collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size mean_per_female, by(pgrm_cipcode inst_code)
-collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size mean_per_female (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)
-sort mean_per_female
+collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size per_unkown, by(pgrm_cipcode inst_code)
+collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size per_unkown (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)
+sort per_unkown
 
 
 ***************************************************************************
@@ -56,7 +56,7 @@ foreach f in 0 1 {
     di "--------------------------------------------------"
 
     * Outcome variables
-    summ PhDin6 yrstoPhD dropout_by6 enrolledafter6 yrs_enrolled_PhD if female == `f'
+    summ PhDin5 PhDin6 PhDin7 yrstoPhD dropout_by6 enrolledafter6 yrs_enrolled_PhD if female == `f'
     
     * Demographics/Controls
     summ age international if female == `f'
@@ -66,7 +66,7 @@ foreach f in 0 1 {
 }
 
 ***************************************************************************
-*Table 4A: Effect of Cohort Gender Composition on Ph.D. Completion Within 6 Years
+*Table 4A: 
 ***************************************************************************
 use `main', clear 
 *Run using 3 different definitions of cohort gender composition
@@ -82,34 +82,14 @@ foreach mainvar of local int_comp {
 }
 
 ***************************************************************************
-*Table 4B: DDD Chinese Peer
+*Table 4B: 
 ***************************************************************************
-
-use `main', clear
-
-local mainvar "cip_per_china_peers"
-
-    * DDD probit regression
-    quietly probit PhDin6 c.`mainvar'##i.international##i.china $controls $FEs, cluster(cip_inst)
-
-    * β₁: Int (non-Chinese) vs Domestic at 0% Chinese peers
-	margins, dydx(i.international) atmeans over(china) at(`mainvar'==0)
-		
-	* β1+B2: Chinese vs international at 0% Chinese peers
-	margins, dydx(i.china) atmeans over(international) at(`mainvar'==0)
-	
-	* β 3,4,5 : Peer effect diff: Chinese vs Intl non-Chinese"
-    margins, dydx(`mainvar') atmeans over(china international) post
-	lincom _b[`mainvar':0.china#1.international] - _b[`mainvar':0.china#0.international]
-	lincom _b[`mainvar':1.china#1.international] - _b[`mainvar':0.china#1.international]
-
-	
 	
 	use `main', clear 
 *Run using 3 different definitions of cohort gender composition
 local int_comp "per_same_county_peers"
 foreach mainvar of local int_comp {
-	probit PhDin6 c.`mainvar'##i.international $controls $FEs, cluster(cip_inst) 
+	quietly probit PhDin6 c.`mainvar'##i.international $controls $FEs, cluster(cip_inst) 
 	*Effect of no int peers on int student
 	margins, dydx(i.international) atmeans at(`mainvar'==0)
 	*Effect of addtl int peers on domestic students and int students separately

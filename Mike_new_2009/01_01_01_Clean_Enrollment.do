@@ -27,12 +27,14 @@ merge m:1 yr_num term_code using `term_index'
 keep if _merge==3
 drop _merge
 
+*drop if gpa==.
+
 *tag first and last term of enrollment
 egen first_term=min(term_index), by(id inst_code)
 egen last_term=max(term_index), by(id inst_code)
 
-*drop if first term before 2009 SM
-drop if first_term < 40
+*drop if first term before 2011SM
+drop if first_term < 48
 
 drop special* subsidy* institution_level* institution* residency* fiscal* campus_code term_key student_rank_desc ipeds* campus_ipeds_id living* incarcerated* campus_type* cip_title
 

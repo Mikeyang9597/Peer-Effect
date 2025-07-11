@@ -66,8 +66,7 @@ gen term_count = term_end - term_begin + 1
 expand term_count
 bysort academic_program_key term_begin (term_begin): gen term_index = term_begin + _n - 1
 
-drop if term_index < 40
-drop if term_index > 102
+drop if term_index < 48
 
 * Ensure all unique prog_cip_code values are retained while keeping all academic_program_key values
 duplicates drop academic_program_key campus_key term_index ,force

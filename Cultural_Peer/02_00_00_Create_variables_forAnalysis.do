@@ -37,7 +37,7 @@ egen per_transfer=mean(transfer_from), by(pgrm_cipcode2010_admit inst_code)
 *Drop programs with >=20% transfer students, but can show robustness for dropping more or less
 *For future robustness checks uncomment this line:
 gen todrop=(per_transfer>=.20)
-drop if transfer_from==1
+*drop if transfer_from==1
 *drop if todrop==1
 
 **************************************************************
@@ -299,7 +299,6 @@ drop if pgrm_cipcode2010_admit == 512401
 drop if pgrm_cipcode2010_admit == 260401
 drop if pgrm_cipcode2010_admit == 450201
 drop if pgrm_cipcode2010_admit == 512308
-
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace

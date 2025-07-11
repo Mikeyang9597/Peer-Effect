@@ -14,20 +14,30 @@ drop last_term_GRD
 *Clean up sample
 ***************************************************************************
 ***Re-assign cohort starts
+*drop if term_code_admit=="WI" | term_code_admit=="SP"
 replace first_term_PhD=first_term_PhD+1 if term_code_admit=="SM"
-replace first_term_PhD=first_term_PhD+1 if term_code_admit=="WI"
-replace first_term_PhD=first_term_PhD+0 if term_code_admit=="SP"
 
 *For summer starters, reassign firstQgpa to fall
 replace firstQgpa=firstQgpa_AU if term_code=="SM"
 drop firstQgpa_AU
 drop if firstQgpa==.
+
 *Deduct 1 quarter from time-to-PhD variable
 replace yrstoPhD=yrstoPhD-.25 if term_code=="SM"
 
 ***Drop Youngstown and Medical U***
 drop if inst_code=="YNGS" | inst_code=="MCOT"
-drop term_code*
+*drop term_code*
+
+*international variable
+gen international = 0
+replace international = 1 if nonresident_alien_flag == "Y"
+***Drop Unknown coo students***
+replace cood = "zz_United States" if international == 0
+gen unknown = 0
+replace unknown = 1 if cood == "zz_Unknown"
+egen per_unkown=mean(unknown), by(pgrm_cipcode2010_admit inst_code)
+
 
 **************************************************************
 *Clean up various control variables and identifiers
@@ -44,9 +54,6 @@ drop yr_num_admit birth_yr
 gen female = 1 if sex == "F"
 replace female = 0 if sex == "M"
 drop sex
-*international variable
-gen international = 0
-replace international = 1 if nonresident_alien_flag == "Y"
 *encode string variables
 encode pgrm_cipfield2010_admit, gen(field_num)
 encode inst_code, gen(inst_num)
@@ -54,23 +61,29 @@ tab race, gen(race_ind)
 *create CIP code-inst code identifier for fixed effects
 egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
 egen field_inst=group(pgrm_cipfield2010_admit inst_code)
-
+egen per_transfer=mean(transfer_from), by(pgrm_cipcode2010_admit inst_code)
+gen todrop_=(per_transfer>=.20)
+drop if todrop==1
 
 **************************************************************
 *Create main outcome variables
 **************************************************************
 *Indicator for still enrolled in SP23
-gen stillenrolled=last_term_PhD > 88
+gen stillenrolled=last_term_PhD > 92
 replace stillenrolled=0 if everPhD==1
 *Indicator for dropout
 gen dropout=(everPhD==0)
 replace dropout=0 if stillenrolled==1
 *generate indicator for PhD within 5 years
 gen PhDin5=(everPhD==1 & yrstoPhD<=5)
-replace PhDin5=. if first_term_PhD>66
+replace PhDin5=. if first_term_PhD>78
 *generate indicator for PhD within 6 years
 gen PhDin6=(everPhD==1 & yrstoPhD<=6)
-replace PhDin6=. if first_term_PhD>=66
+replace PhDin6=. if first_term_PhD>=74
+*generate indicator for PhD within 7 years
+gen PhDin7=(everPhD==1 & yrstoPhD<=7)
+replace PhDin7=. if first_term_PhD>=70
+
 
 **Persistence variables:
 *indicator for makes it to yr 2, yr3, etc
@@ -82,14 +95,6 @@ gen persist_to_yr`j'=(yrs_enrolled_PhD>`i' | everPhD==1 )
 replace persist_to_yr`j'=. if first_term_PhD>86-4*(`i')
 }
 
-
-
-
-gen china = 0
-replace china = 1 if cood == "China"
-
-gen india = 0
-replace india = 1 if cood == "India"
 
 **************************************************************
 * Create main treatment variables
@@ -123,21 +128,6 @@ foreach x of local groups {
     gen `x'_per_int_peers=`x'_num_international/(`x'_cohort_size-1) if international==0
     replace `x'_per_int_peers=(`x'_num_international-1)/(`x'_cohort_size-1) if international==1
 
-    * China composition
-    egen `x'_num_china = sum(china), by(`groupvar' inst_code first_term_PhD)
-    gen `x'_num_china_peers = `x'_num_china
-    replace `x'_num_china_peers = `x'_num_china - 1 if china == 1
-    gen `x'_per_china = `x'_num_china / `x'_cohort_size
-    gen `x'_per_china_peers = `x'_num_china / (`x'_cohort_size - 1) if china == 0
-    replace `x'_per_china_peers = (`x'_num_china - 1) / (`x'_cohort_size - 1) if china == 1
-	
-	* India composition
-	egen `x'_num_india = sum(india), by(`groupvar' inst_code first_term_PhD)
-	gen `x'_num_india_peers = `x'_num_india
-	replace `x'_num_india_peers = `x'_num_india - 1 if india == 1
-	gen `x'_per_india = `x'_num_india / `x'_cohort_size
-	gen `x'_per_india_peers = `x'_num_india / (`x'_cohort_size - 1) if india == 0
-	replace `x'_per_india_peers = (`x'_num_india - 1) / (`x'_cohort_size - 1) if india == 1
 
     * Year 2 Gender
     egen `x'_num_female_yr2=sum(female*persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
@@ -148,53 +138,22 @@ foreach x of local groups {
     egen `x'_num_international_yr2=sum(international*persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
     gen `x'_per_international_yr2=`x'_num_international_yr2/(`x'_cohort_size_yr2)
 
-    * Year 2 China
-    egen `x'_num_china_yr2=sum(china*persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
-    gen `x'_per_china_yr2 = `x'_num_china_yr2 / `x'_cohort_size_yr2
-	
-	* Year 2 India
-	egen `x'_num_india_yr2=sum(india*persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
-	gen `x'_per_india_yr2 = `x'_num_india_yr2 / `x'_cohort_size_yr2
-
 }
-
-
-
-
-
-replace cood = "zz_United States" if international == 0
-
-***Drop Unknown coo students***
-gen unknown = 0
-replace unknown = 1 if cood == "zz_Unknown"
-egen per_unkown=mean(unknown), by(pgrm_cipcode2010_admit inst_code)
-codebook per_unkown
-*gen todrop=(per_unkown>=.20)
-*drop if unknown==1
-*drop if todrop==1
-
-egen per_unkown_ = tag(pgrm_cipcode2010_admit inst_code)
-keep if per_unkown_ == 1
-
-codebook per_unkown
-
-
 
 
 
 *same_country_peer
 bysort pgrm_cipcode2010_admit inst_code first_term_PhD cood: gen same_country_count = _N
 replace same_country_count = . if unknown == 1
-gen same_country_share = same_country_count / cip_cohort_size
-gen same_country_peers = same_country_count - 1
-gen same_country_peer_share = same_country_peers / (cip_cohort_size - 1 )
-*exlucde unknowns 
+
+gen unknown_flag = (unknown == 1)
+egen num_unknown = total(unknown_flag), by(pgrm_cipcode2010_admit inst_code first_term_PhD)
+
+
+gen same_country_share = same_country_count / (cip_cohort_size - num_unknown)
+gen same_country_peers = same_country_count - 1 
+gen same_country_peer_share = same_country_peers / (cip_cohort_size - 1 - num_unknown)
 rename same_country_peer_share per_same_county_peers
-
-
-
-
-
 
 
 
@@ -226,29 +185,6 @@ gsort cip_inst -first_term_PhD
 by cip_inst: gen lead_cohort_size_international=cip_cohort_size[_n-1] if first_term_PhD==first_term_PhD[_n-1]-4
 bysort cip_inst first_term_PhD (lead_cohort_size_international): replace lead_cohort_size_international=lead_cohort_size_international[1]
 
-* Lag & Lead China
-sort cip_inst first_term_PhD
-by cip_inst: gen lag_per_china=cip_per_china_yr2[_n-1] if first_term_PhD==first_term_PhD[_n-1]+4
-bysort cip_inst first_term_PhD: replace lag_per_china=lag_per_china[1]
-
-gsort cip_inst -first_term_PhD
-by cip_inst: gen lead_per_china=cip_per_china[_n-1] if first_term_PhD==first_term_PhD[_n-1]-4
-bysort cip_inst first_term_PhD (lead_per_china): replace lead_per_china=lead_per_china[1]
-
-
-* Lag & Lead India
-sort cip_inst first_term_PhD
-by cip_inst: gen lag_per_india=cip_per_india_yr2[_n-1] if first_term_PhD==first_term_PhD[_n-1]+4
-bysort cip_inst first_term_PhD: replace lag_per_india=lag_per_india[1]
-
-gsort cip_inst -first_term_PhD
-by cip_inst: gen lead_per_india=cip_per_india[_n-1] if first_term_PhD==first_term_PhD[_n-1]-4
-bysort cip_inst first_term_PhD (lead_per_india): replace lead_per_india=lead_per_india[1]
-
-
-
-
-
 
 * Cohort stats
 egen cohort_tag=tag(cip_inst first_term_PhD)
@@ -273,17 +209,6 @@ bysort cip_inst (cohort_tag): replace mean_per_international=mean_per_internatio
 gen demeaned_per_international=cip_per_international-mean_per_international
 egen above_avg_international=cut(demeaned_per_international), at(-1, 0 ,1) label
 
-* China deviation
-egen mean_per_china=mean(cip_per_china) if cohort_tag==1, by(pgrm_cipcode2010_admit inst_code)
-bysort cip_inst (cohort_tag): replace mean_per_china=mean_per_china[_N]
-gen demeaned_per_china=cip_per_china-mean_per_china
-egen above_avg_china=cut(demeaned_per_china), at(-1, 0 ,1) label
-
-* India deviation
-egen mean_per_india=mean(cip_per_india) if cohort_tag==1, by(pgrm_cipcode2010_admit inst_code)
-bysort cip_inst (cohort_tag): replace mean_per_india=mean_per_india[_N]
-gen demeaned_per_india=cip_per_india-mean_per_india
-egen above_avg_india=cut(demeaned_per_india), at(-1, 0 ,1) label
 
 
 
@@ -297,17 +222,6 @@ gen demeaned_lag_per_international=lag_per_international-mean_per_international
 gen demeaned_lead_per_international=lead_per_international-mean_per_international
 egen lag_above_avg_international=cut(demeaned_lag_per_international), at(-1, 0 ,1) label
 egen lead_above_avg_international=cut(demeaned_lead_per_international), at(-1, 0 ,1) label
-
-gen demeaned_lag_per_china=lag_per_china-mean_per_china
-gen demeaned_lead_per_china=lead_per_china-mean_per_china
-egen lag_above_avg_china=cut(demeaned_lag_per_china), at(-1, 0 ,1) label
-egen lead_above_avg_china=cut(demeaned_lead_per_china), at(-1, 0 ,1) label
-
-gen demeaned_lag_per_india=lag_per_india-mean_per_india
-gen demeaned_lead_per_india=lead_per_india-mean_per_india
-egen lag_above_avg_india=cut(demeaned_lag_per_india), at(-1, 0 ,1) label
-egen lead_above_avg_india=cut(demeaned_lead_per_india), at(-1, 0 ,1) label
-
 
 *Calculate average age for each program-cohort
 egen cip_cohort_age=mean(age), by(pgrm_cipcode2010 inst_code first_term_PhD)

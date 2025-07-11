@@ -67,7 +67,6 @@ drop if degree_level_code==""
 ************************************************
 *keep doctorates (09, 17) but drop programs that switch from 09 to 18 or 19 or if degree_code!=PHD
 keep if degree_level_code=="09" | degree_level_code=="17"
-*rop if ever18 | ever19
 drop ever18 ever19
 
 *revise first and last term variables now that I've dropped non-doctorates

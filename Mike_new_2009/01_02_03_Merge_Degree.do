@@ -1,7 +1,7 @@
 *01_02_03_Merge_program_degree
 
 *Input files:
-local in_main"$mydir\clean_mike\merged_main_indiv.dta"
+local in_main "$mydir\clean_mike\merged_main_indiv.dta"
 local term_index "$mydir\clean_mike\term_index.dta"
 local degree "$mydir\clean_mike\clean_degree.dta"
 local degree_MA "$mydir\clean_mike\clean_degree_MA.dta"

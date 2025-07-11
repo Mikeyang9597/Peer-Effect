@@ -14,10 +14,6 @@ merge m:1 id using `race'
 keep if _merge == 3
 drop _merge
 
-*tabulate term_index if cood == "zz_Unknown"
-
-
-
 gen hold=(inst_code=="OHSU" & yr_num==2011 & term_code=="AU")
 replace term_code="SP" if hold==1
 replace yr_num=2012 if hold==1
@@ -48,7 +44,7 @@ drop _merge
 *For pgrm_code=="UNDECI", look forward to first non-missing pgrm_code and reassign to that value
 gsort id inst_code -term_index
 *also fill in all other academic program variables
-foreach var of varlist academic_program_key degree_level_code cip_code ever18 ever19 {
+foreach var of varlist academic_program_key degree_level_code cip_code {
 replace `var'=`var'[_n-1] if degree_level_code=="" & id==id[_n-1] & inst_code==inst_code[_n-1] 
 }
 replace degree_level_code=degree_level_code[_n-1] if degree_level_code=="" & id==id[_n-1] & inst_code==inst_code[_n-1] 
@@ -66,7 +62,6 @@ replace degree_level_code=degree_level_code[_n-1] if degree_level_code=="" & id=
 drop if degree_level_code==""
 
 
-
 ************************************************
 *Only keep PhD students
 ************************************************
@@ -78,10 +73,10 @@ rename first_term first_term_GRD
 rename last_term last_term_GRD
 egen first_term_PhD=min(term_index), by(id inst_code)
 egen last_term_PhD=max(term_index), by(id inst_code)
+egen transfer_from_other_level=max(first_term_PhD!=first_term_GRD), by(hei_psid inst_code)
+egen transfer_to_other_level=max(last_term_PhD!=last_term_GRD), by(hei_psid inst_code)
 
 **Drop terms where no credit hours are attempted
-*drop if gpa==.
-*revise first term variable
 rename first_term_PhD first_term_nocredit
 egen first_term_PhD=min(term_index), by(id inst_code)
 

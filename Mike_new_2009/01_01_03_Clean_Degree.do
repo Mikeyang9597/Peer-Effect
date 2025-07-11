@@ -22,7 +22,7 @@ merge m:1 yr_num term_code using `term_index'
 keep if _merge == 3
 drop _merge
 
-drop if term_index < 40
+drop if term_index < 48
 
 *keep only 1st degree
 bysort id (term_index): keep if _n==1
@@ -32,7 +32,7 @@ keep id degree*  campus* institution* ipeds* credit* cip* term_index
 *generate term_earned
 gen term_earned = term_index
 
-drop if term_index < 40
+drop if term_index < 48
 
 keep id term_earned
 
@@ -64,8 +64,7 @@ merge m:1 yr_num term_code using `term_index'
 keep if _merge == 3
 drop _merge
 
-drop if term_index < 40
-drop if term_index > 102
+drop if term_index < 48
 
 *keep only 1st degree
 bysort id (term_index): keep if _n==1
@@ -75,8 +74,7 @@ keep id degree*  campus* institution* ipeds* credit* cip* term_index
 *generate term_earned
 gen term_earned_MA = term_index
 
-drop if term_index < 40
-drop if term_index > 102
+drop if term_index < 48
 
 keep id term_earned_MA
 
