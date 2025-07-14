@@ -27,8 +27,6 @@ merge m:1 yr_num term_code using `term_index'
 keep if _merge==3
 drop _merge
 
-*drop if gpa==.
-
 *tag first and last term of enrollment
 egen first_term=min(term_index), by(id inst_code)
 egen last_term=max(term_index), by(id inst_code)

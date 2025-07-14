@@ -18,9 +18,8 @@ global FEs "i.first_term_PhD i.cip_inst"
 
 *main in
 use `main', clear
-collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size per_unkown, by(pgrm_cipcode inst_code)
-collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size per_unkown (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)
-sort per_unkown
+collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size , by(pgrm_cipcode inst_code)
+collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size  (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)
 
 
 ***************************************************************************
@@ -119,7 +118,7 @@ foreach y of local yvars {
 ***************************************************************************
 *Table 6: Effects of Cohort Gender Composition By Typically Male/Female Programs
 ***************************************************************************
-use $main, clear
+use `main', clear 
 *First use definition of typically male programs: average cohort gender composition ≤ 36.7% female
 forval g=0/1 {
 	quietly probit PhDin6 c.cip_per_fem_peers##i.female  $controls $FEs if typically_male==`g', cluster(cip_inst) 

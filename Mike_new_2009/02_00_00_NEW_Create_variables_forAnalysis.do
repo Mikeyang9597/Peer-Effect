@@ -16,6 +16,13 @@ drop last_term_GRD
 ***Re-assign cohort starts
 *drop if term_code_admit=="WI" | term_code_admit=="SP"
 replace first_term_PhD=first_term_PhD+1 if term_code_admit=="SM"
+drop if term_code_admit == "SP"
+drop if term_code_admit == "WI"
+
+*bysort inst_code: tab pgrm_cipcode first_term_PhD
+*bysort inst_code: tab pgrm_cipcode term_code_admit
+*bysort international: tab term_code_admit
+*bysort transfer_from: tab term_code_admit
 
 *For summer starters, reassign firstQgpa to fall
 replace firstQgpa=firstQgpa_AU if term_code=="SM"
@@ -36,7 +43,6 @@ replace international = 1 if nonresident_alien_flag == "Y"
 replace cood = "zz_United States" if international == 0
 gen unknown = 0
 replace unknown = 1 if cood == "zz_Unknown"
-egen per_unkown=mean(unknown), by(pgrm_cipcode2010_admit inst_code)
 
 
 **************************************************************
@@ -62,8 +68,8 @@ tab race, gen(race_ind)
 egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
 egen field_inst=group(pgrm_cipfield2010_admit inst_code)
 egen per_transfer=mean(transfer_from), by(pgrm_cipcode2010_admit inst_code)
-gen todrop_=(per_transfer>=.20)
-drop if todrop==1
+*gen todrop_=(per_transfer>=.20)
+*drop if todrop==1
 
 **************************************************************
 *Create main outcome variables
@@ -238,7 +244,7 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",repla
 ***************************************************************
 
 *Preferred sample is STEM AND size>9 only
-keep if STEM==1
+keep if STEM==0
 drop if mean_cohort_size<=9
 *Define Typically Male/Typically Female Sample
 egen programtag = tag(cip_inst)

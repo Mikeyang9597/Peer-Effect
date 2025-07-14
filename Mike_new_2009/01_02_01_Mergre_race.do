@@ -73,8 +73,8 @@ rename first_term first_term_GRD
 rename last_term last_term_GRD
 egen first_term_PhD=min(term_index), by(id inst_code)
 egen last_term_PhD=max(term_index), by(id inst_code)
-egen transfer_from_other_level=max(first_term_PhD!=first_term_GRD), by(hei_psid inst_code)
-egen transfer_to_other_level=max(last_term_PhD!=last_term_GRD), by(hei_psid inst_code)
+egen transfer_from_other_level=max(first_term_PhD!=first_term_GRD), by(id inst_code)
+egen transfer_to_other_level=max(last_term_PhD!=last_term_GRD), by(id inst_code)
 
 **Drop terms where no credit hours are attempted
 rename first_term_PhD first_term_nocredit
