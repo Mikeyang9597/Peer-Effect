@@ -32,7 +32,7 @@ drop if _merge==2
 replace term_code="AU" if hold==1
 replace yr_num=2011 if hold==1
 replace yr_num=yr_num+1 if hold2==1
-drop _merge hold hold2
+drop _merge hold hold2 term_index
 
 *merge with term index
 merge m:1 yr_num term_code using `term_index'
@@ -60,7 +60,6 @@ replace degree_level_code=degree_level_code[_n-1] if degree_level_code=="" & id=
 
 *drop remaining students where pgrm_code is always undecided
 drop if degree_level_code==""
-
 
 ************************************************
 *Only keep PhD students
@@ -95,11 +94,6 @@ rename cipcode2010 pgrm_cipcode2010
 rename subjecttitle2010 pgrm_ciptitle2010
 rename subjectfield2010 pgrm_cipfield2010
 rename stemdesignation pgrm_STEM
-
-gen gpa = .
-replace gpa = cum_gpa_quality_points / cum_credit_hours
-drop if gpa == .
-drop cum*
 
 compress
 

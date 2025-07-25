@@ -21,7 +21,6 @@ use `main', clear
 collapse (first) pgrm_cipfield  pgrm_ciptitle mean_cohort_size , by(pgrm_cipcode inst_code)
 collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size  (count) num_pgrms=mean_cohort_size, by(pgrm_cipcode)
 
-
 ***************************************************************************
 *Table 2: Cohort Characteristics
 ***************************************************************************
@@ -29,15 +28,15 @@ collapse (first) pgrm_cipfield  pgrm_ciptitle (mean) mean_cohort_size  (count) n
 *Cohort Characteristics
 *Panel A: Estimation sample
 use `main', clear
-summ STEM cip_cohort_size cip_num_international cip_per_female if cohort_tag==1
+summ STEM cip_cohort_size cip_num_international cip_per_international if cohort_tag==1
 
 *Panel B: Estimation Sample + Non-STEM + Small Programs
 use `robust', clear
-summ STEM cip_cohort_size cip_num_female cip_per_female if cohort_tag==1
+summ STEM cip_cohort_size cip_num_international cip_per_international if cohort_tag==1
 
 *Panel C: Full Sample, All Years
 use `allyrs', clear
-summ STEM cip_cohort_size cip_num_female cip_per_female if cohort_tag==1
+summ STEM cip_cohort_size cip_num_international cip_per_international if cohort_tag==1
 
 ***************************************************************************
 * Table 3: Summary Statistics by Gender
@@ -55,7 +54,7 @@ foreach f in 0 1 {
     di "--------------------------------------------------"
 
     * Outcome variables
-    summ PhDin5 PhDin6 PhDin7 yrstoPhD dropout_by6 enrolledafter6 yrs_enrolled_PhD if female == `f'
+    summ PhDin5 PhDin6 PhDin7 PhDin8 yrstoPhD dropout_by6 enrolledafter6 yrs_enrolled_PhD if female == `f'
     
     * Demographics/Controls
     summ age international if female == `f'
@@ -71,7 +70,7 @@ use `main', clear
 *Run using 3 different definitions of cohort gender composition
 local int_comp "cip_per_int_peers"
 foreach mainvar of local int_comp {
-	quietly probit PhDin6 c.`mainvar'##i.international $controls $FEs, cluster(cip_inst) 
+	probit PhDin6 c.`mainvar'##i.international $controls $FEs , cluster(cip_inst) 
 	*Effect of no int peers on int student
 	margins, dydx(i.international) atmeans at(`mainvar'==0)
 	*Effect of addtl int peers on domestic students and int students separately
@@ -81,11 +80,25 @@ foreach mainvar of local int_comp {
 }
 
 ***************************************************************************
+*Table 4A: 
+***************************************************************************
+use `main', clear 
+*Run using 3 different definitions of cohort gender composition
+local int_comp "cip_per_int_peers"
+foreach mainvar of local int_comp {
+	 probit PhDin6 c.`mainvar'##i.continent_num $controls $FEs, cluster(cip_inst) 
+	*Effect of no int peers on int student
+	margins, dydx(i.continent_num) atmeans at(`mainvar'==0)
+	*Effect of addtl int peers on domestic students and int students separately
+	margins, dydx(`mainvar' ) atmeans over(continent_num) post 
+
+}
+
+***************************************************************************
 *Table 4B: 
 ***************************************************************************
 	
 	use `main', clear 
-*Run using 3 different definitions of cohort gender composition
 local int_comp "per_same_county_peers"
 foreach mainvar of local int_comp {
 	quietly probit PhDin6 c.`mainvar'##i.international $controls $FEs, cluster(cip_inst) 
@@ -98,22 +111,67 @@ foreach mainvar of local int_comp {
 }
 
 
+
+** GAP analysis
+*reghdfe lastQgpa c.per_same_county_peers##i.continent_num $controls, absorb( $FEs ) cluster(cip_inst)
+reghdfe lastQgpa c.cip_per_int_peers##i.international $controls, absorb( $FEs ) cluster(cip_inst)
+*reghdfe lastQgpa c.per_same_continent_peers##i.continent_num $controls, absorb( $FEs ) cluster(cip_inst)
+
+
+
+
+***************************************************************************
+*Table 4A: 
+***************************************************************************
+use `main', clear 
+*Run using 3 different definitions of cohort gender composition
+local int_comp "per_same_continent_peers"
+foreach mainvar of local int_comp {
+	quietly probit PhDin6 c.`mainvar'##i.continent_num $controls $FEs, cluster(cip_inst) 
+	*Effect of no int peers on int student
+	margins, dydx(i.continent_num) atmeans at(`mainvar'==0)
+	*Effect of addtl int peers on domestic students and int students separately
+	margins, dydx(`mainvar' ) atmeans over(continent_num) post 
+
+}
+
+***************************************************************************
+*Table 5: Effect of Cohort Gender Composition on Ph.D. Persistence
+***************************************************************************
+use `main', clear  
+*For 5 outcome variables: persistence through year 2...6
+*local yvars "persist_to_yr2 persist_to_yr3 persist_to_yr4 persist_to_yr5 persist_to_yr6"
+local yvars "persist_to_yr2"
+foreach y of local yvars {
+	quietly probit `y' c.cip_per_int_peers##i.international  $controls $FEs, cluster(cip_inst) 
+	*Effect of no female peers on female student
+	margins, dydx(i.international) atmeans at(cip_per_int_peers==0)
+	*Effect of addtl female peers on male students and female students separately
+	margins, dydx(cip_per_int_peers) atmeans over(international) post
+	*Differential effect of addtl female peers on female students vs. male students
+	lincom _b[cip_per_int_peers:1.international] - _b[cip_per_int_peers:0.international]
+}
+
 	
 ***************************************************************************
 *Table 5: Effect of Cohort Gender Composition on Ph.D. Persistence
 ***************************************************************************
 use `main', clear  
 *For 5 outcome variables: persistence through year 2...6
-local yvars "persist_to_yr2"
+*local yvars "persist_to_yr2 persist_to_yr3 persist_to_yr4 persist_to_yr5 persist_to_yr6"
+local yvars "persist_to_yr5"
 foreach y of local yvars {
-	quietly probit `y' c.cip_per_fem_peers##i.female  $controls $FEs, cluster(cip_inst) 
+	quietly probit `y' c.per_same_county_peers##i.international  $controls $FEs, cluster(cip_inst) 
 	*Effect of no female peers on female student
-	margins, dydx(i.female) atmeans at(cip_per_fem_peers==0)
+	margins, dydx(i.international) atmeans at(per_same_county_peers==0)
 	*Effect of addtl female peers on male students and female students separately
-	margins, dydx(cip_per_fem_peers) atmeans over(female) post
+	margins, dydx(per_same_county_peers) atmeans over(international) post
 	*Differential effect of addtl female peers on female students vs. male students
-	lincom _b[cip_per_fem_peers:1.female] - _b[cip_per_fem_peers:0.female]
+	lincom _b[per_same_county_peers:1.international] - _b[per_same_county_peers:0.international]
 }
+
+
+
 
 ***************************************************************************
 *Table 6: Effects of Cohort Gender Composition By Typically Male/Female Programs

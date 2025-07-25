@@ -51,3 +51,11 @@ drop disciplinearea
 keep subjecttitle2010 subjectfield2010 cipcode2010 stemdesignation
 duplicates drop
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\CIPmaster.dta",replace
+
+
+* save continet data in dta form
+import excel "$mydir\raw\continent",firstrow clear case(lower)
+drop c d
+save "\\chrr\vr\profiles\syang\Desktop\clean_mike\continent.dta",replace
+
+

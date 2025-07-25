@@ -43,7 +43,4 @@ foreach var of varlist yr_num term_code pgrm* {
 rename `var' `var'_admit
 }
 
-***Drop unnecessary variables***
-drop gpa
-
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\merged_main_indiv.dta",replace

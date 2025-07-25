@@ -44,6 +44,8 @@ foreach var of varlist term_index {
 rename `var' `var'_PhD
 }
 
+drop last_term_GRD
+
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\main_in_ready.dta",replace
 ********************************************************************************

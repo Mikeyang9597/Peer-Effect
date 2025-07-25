@@ -8,21 +8,12 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 *main in
 use `in', clear
 
-drop last_term_GRD
-
 ***************************************************************************
 *Clean up sample
 ***************************************************************************
 ***Re-assign cohort starts
-*drop if term_code_admit=="WI" | term_code_admit=="SP"
+drop if term_code_admit=="WI" | term_code_admit=="SP"
 replace first_term_PhD=first_term_PhD+1 if term_code_admit=="SM"
-drop if term_code_admit == "SP"
-drop if term_code_admit == "WI"
-
-*bysort inst_code: tab pgrm_cipcode first_term_PhD
-*bysort inst_code: tab pgrm_cipcode term_code_admit
-*bysort international: tab term_code_admit
-*bysort transfer_from: tab term_code_admit
 
 *For summer starters, reassign firstQgpa to fall
 replace firstQgpa=firstQgpa_AU if term_code=="SM"
@@ -34,16 +25,6 @@ replace yrstoPhD=yrstoPhD-.25 if term_code=="SM"
 
 ***Drop Youngstown and Medical U***
 drop if inst_code=="YNGS" | inst_code=="MCOT"
-*drop term_code*
-
-*international variable
-gen international = 0
-replace international = 1 if nonresident_alien_flag == "Y"
-***Drop Unknown coo students***
-replace cood = "zz_United States" if international == 0
-gen unknown = 0
-replace unknown = 1 if cood == "zz_Unknown"
-
 
 **************************************************************
 *Clean up various control variables and identifiers
@@ -67,28 +48,29 @@ tab race, gen(race_ind)
 *create CIP code-inst code identifier for fixed effects
 egen cip_inst=group(pgrm_cipcode2010_admit inst_code)
 egen field_inst=group(pgrm_cipfield2010_admit inst_code)
-egen per_transfer=mean(transfer_from), by(pgrm_cipcode2010_admit inst_code)
-*gen todrop_=(per_transfer>=.20)
-*drop if todrop==1
+
 
 **************************************************************
 *Create main outcome variables
 **************************************************************
 *Indicator for still enrolled in SP23
-gen stillenrolled=last_term_PhD > 92
+gen stillenrolled=last_term_PhD > 90
 replace stillenrolled=0 if everPhD==1
 *Indicator for dropout
 gen dropout=(everPhD==0)
 replace dropout=0 if stillenrolled==1
 *generate indicator for PhD within 5 years
 gen PhDin5=(everPhD==1 & yrstoPhD<=5)
-replace PhDin5=. if first_term_PhD>78
+replace PhDin5=. if first_term_PhD>72
 *generate indicator for PhD within 6 years
 gen PhDin6=(everPhD==1 & yrstoPhD<=6)
-replace PhDin6=. if first_term_PhD>=74
+replace PhDin6=. if first_term_PhD>=68
 *generate indicator for PhD within 7 years
 gen PhDin7=(everPhD==1 & yrstoPhD<=7)
-replace PhDin7=. if first_term_PhD>=70
+replace PhDin7=. if first_term_PhD>=64
+*generate indicator for PhD within 8 years
+gen PhDin8=(everPhD==1 & yrstoPhD<=8)
+replace PhDin8=. if first_term_PhD>=60
 
 
 **Persistence variables:
@@ -98,7 +80,7 @@ replace yrs_enrolled_PhD=(last_term_PhD-first_term_PhD+1)/4 if dropout==1
 forval i = 1/6 {
 local j =`i'+1
 gen persist_to_yr`j'=(yrs_enrolled_PhD>`i' | everPhD==1 )
-replace persist_to_yr`j'=. if first_term_PhD>86-4*(`i')
+replace persist_to_yr`j'=. if first_term_PhD>80-4*(`i')
 }
 
 
@@ -149,7 +131,7 @@ foreach x of local groups {
 
 
 *same_country_peer
-bysort pgrm_cipcode2010_admit inst_code first_term_PhD cood: gen same_country_count = _N
+bysort pgrm_cipcode2010_admit inst_code first_term_PhD cood: gen same_country_count = _N 
 replace same_country_count = . if unknown == 1
 
 gen unknown_flag = (unknown == 1)
@@ -160,6 +142,20 @@ gen same_country_share = same_country_count / (cip_cohort_size - num_unknown)
 gen same_country_peers = same_country_count - 1 
 gen same_country_peer_share = same_country_peers / (cip_cohort_size - 1 - num_unknown)
 rename same_country_peer_share per_same_county_peers
+gen same_country_indicator = 0
+replace same_country_indicator = 1 if same_country_count > 1
+
+
+bysort pgrm_cipcode2010_admit inst_code first_term_PhD continent_num: gen same_continent_count = _N 
+gen same_continent_share = same_continent_count / (cip_cohort_size - num_unknown)
+gen same_continent_peers = same_continent_count - 1 
+gen same_continent_peer_share = same_continent_peers / (cip_cohort_size - 1 - num_unknown)
+rename same_continent_peer_share per_same_continent_peers
+gen same_continent_indicator = 0
+replace same_continent_indicator = 1 if same_continent_count > 1
+
+
+
 
 
 
@@ -236,20 +232,17 @@ egen cip_cohort_age=mean(age), by(pgrm_cipcode2010 inst_code first_term_PhD)
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 ********************************************************************************
 
-*Main sample is 2009-2023 (cohorts for whom Phdin6 is defined)
-drop if first_term_PhD>70
+*Main sample is 2009-2016 (cohorts for whom Phdin6 is defined)
+drop if first_term_PhD>68
+drop if first_term_PhD<32 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace
 ********************************************************************************
 ***************************************************************
 
 *Preferred sample is STEM AND size>9 only
-keep if STEM==0
+keep if STEM==1
 drop if mean_cohort_size<=9
-*Define Typically Male/Typically Female Sample
-egen programtag = tag(cip_inst)
-codebook mean_per_female if programtag
-gen typically_male=(mean_per_female<=.407313)
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace
