@@ -70,7 +70,7 @@ use `main', clear
 *Run using 3 different definitions of cohort gender composition
 local int_comp "cip_per_int_peers"
 foreach mainvar of local int_comp {
-	probit PhDin6 c.`mainvar'##i.international $controls $FEs , cluster(cip_inst) 
+	quietly probit PhDin7 c.`mainvar'##i.international $controls $FEs , cluster(cip_inst) 
 	*Effect of no int peers on int student
 	margins, dydx(i.international) atmeans at(`mainvar'==0)
 	*Effect of addtl int peers on domestic students and int students separately
@@ -86,7 +86,7 @@ use `main', clear
 *Run using 3 different definitions of cohort gender composition
 local int_comp "cip_per_int_peers"
 foreach mainvar of local int_comp {
-	 probit PhDin6 c.`mainvar'##i.continent_num $controls $FEs, cluster(cip_inst) 
+	quietly probit PhDin6 c.`mainvar'##i.continent_num $controls $FEs, cluster(cip_inst) 
 	*Effect of no int peers on int student
 	margins, dydx(i.continent_num) atmeans at(`mainvar'==0)
 	*Effect of addtl int peers on domestic students and int students separately
@@ -141,7 +141,7 @@ foreach mainvar of local int_comp {
 use `main', clear  
 *For 5 outcome variables: persistence through year 2...6
 *local yvars "persist_to_yr2 persist_to_yr3 persist_to_yr4 persist_to_yr5 persist_to_yr6"
-local yvars "persist_to_yr2"
+local yvars "persist_to_yr5"
 foreach y of local yvars {
 	quietly probit `y' c.cip_per_int_peers##i.international  $controls $FEs, cluster(cip_inst) 
 	*Effect of no female peers on female student

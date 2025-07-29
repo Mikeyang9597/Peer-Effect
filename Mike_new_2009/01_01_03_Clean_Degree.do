@@ -17,7 +17,7 @@ drop higher_ed_pseudo_id person_key term
 rename ssn_pseudo id
 
 * Keep only doctoral-level degrees (code "17")
-keep if inlist(level_completed_code, "17")
+keep if inlist(level_completed_code, "17", "09")
 
 * Merge with term index
 rename earned_calendar_year yr_num
@@ -28,6 +28,7 @@ drop _merge
 
 * Keep only degrees earned after 2005 SM
 drop if term_index < 31
+drop if term_index > 102
 
 * Keep only the first doctoral degree per person
 bysort id (term_index): keep if _n == 1
@@ -76,6 +77,7 @@ drop _merge
 
 * Keep only degrees earned after 2005 SM
 drop if term_index < 31
+drop if term_index > 102
 
 * Keep only the first master's degree per person
 bysort id (term_index): keep if _n == 1

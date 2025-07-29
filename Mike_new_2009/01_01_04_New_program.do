@@ -13,8 +13,6 @@ local term_index  "$mydir\clean_mike\term_index.dta"
 * Load academic program data
 use `pgrm', clear
 
-replace degree_level_code = "17" if begin_term_key ==2122 & end_term_key==2122 & campus_key == 331
-
 * Rename and convert key variables
 rename prog_cip_code cip_code
 destring cip_code, replace
@@ -22,6 +20,13 @@ destring academic_program_key, replace
 
 * Keep relevant variables
 keep degree_level_code cip_code academic_program_key degree_level_desc degree_name_code program_code campus_key begin_term_key end_term_key
+
+egen ever17=max(degree_level_code=="17"), by(academic_program_key campus_key)
+egen ever09=max(degree_level_code=="09"), by(academic_program_key campus_key)
+gen tag1 = .
+replace tag = 1 if ever17 == 1 | ever09 == 1
+replace degree_level_code = "17" if begin_term_key ==2122 & end_term_key==2122 & campus_key == 331 & tag1 == 1
+drop ever17 ever09 tag1
 
 ********************************************************************************
 * Convert begin_term_key to term_index (term_begin)
@@ -79,6 +84,7 @@ bysort academic_program_key term_begin (term_begin): gen term_index = term_begin
 
 * Keep only records after 2011SM (term_index >= 48)
 drop if term_index < 31
+drop if term_index > 102
 
 * Drop duplicate program-campus-term combinations
 duplicates drop academic_program_key campus_key term_index, force

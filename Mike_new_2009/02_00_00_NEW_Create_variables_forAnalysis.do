@@ -234,7 +234,7 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 
 *Main sample is 2009-2016 (cohorts for whom Phdin6 is defined)
 drop if first_term_PhD>68
-drop if first_term_PhD<32 
+drop if first_term_PhD<32
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace
 ********************************************************************************
@@ -247,3 +247,15 @@ drop if mean_cohort_size<=9
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace
 ********************************************************************************
+
+
+egen mean_yrstoPhD = mean(yrstoPhD), by(first_term_PhD)
+egen mean_dropout = mean(dropout), by(first_term_PhD)
+egen mean_everPhD = mean(everPhD), by(first_term_PhD)
+
+* Keep only one observation per ID
+bysort first_term_PhD: keep if _n == 1
+
+twoway line mean_yrstoPhD first_term_PhD
+twoway line mean_dropout first_term_PhD
+twoway line mean_everPhD first_term_PhD
