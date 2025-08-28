@@ -58,4 +58,8 @@ import excel "$mydir\raw\continent",firstrow clear case(lower)
 drop c d
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\continent.dta",replace
 
+* save CIP-income data in dta form
+import excel "$mydir\raw\CIP_income",firstrow clear case(lower)
+drop if cipcode == .
+save "\\chrr\vr\profiles\syang\Desktop\clean_mike\cip_income.dta",replace
 

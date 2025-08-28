@@ -8,6 +8,12 @@ local in "$mydir\clean_mike\main_in_ready.dta"
 *main in
 use `in', clear
 
+*drop non-academic Phd Programs
+* Nursing practice with 0 everPhD
+drop if pgrm_cipcode2010_admit == 513818
+* Physical Therapy
+drop if pgrm_cipcode2010_admit == 512308
+
 ***************************************************************************
 *Clean up sample
 ***************************************************************************
@@ -61,7 +67,7 @@ gen dropout=(everPhD==0)
 replace dropout=0 if stillenrolled==1
 *generate indicator for PhD within 5 years
 gen PhDin5=(everPhD==1 & yrstoPhD<=5)
-replace PhDin5=. if first_term_PhD>72
+replace PhDin5=. if first_term_PhD>=72
 *generate indicator for PhD within 6 years
 gen PhDin6=(everPhD==1 & yrstoPhD<=6)
 replace PhDin6=. if first_term_PhD>=68
@@ -77,7 +83,7 @@ replace PhDin8=. if first_term_PhD>=60
 *indicator for makes it to yr 2, yr3, etc
 gen yrs_enrolled_PhD=yrstoPhD if everPhD==1
 replace yrs_enrolled_PhD=(last_term_PhD-first_term_PhD+1)/4 if dropout==1
-forval i = 1/6 {
+forval i = 1/8 {
 local j =`i'+1
 gen persist_to_yr`j'=(yrs_enrolled_PhD>`i' | everPhD==1 )
 replace persist_to_yr`j'=. if first_term_PhD>80-4*(`i')
@@ -116,7 +122,6 @@ foreach x of local groups {
     gen `x'_per_int_peers=`x'_num_international/(`x'_cohort_size-1) if international==0
     replace `x'_per_int_peers=(`x'_num_international-1)/(`x'_cohort_size-1) if international==1
 
-
     * Year 2 Gender
     egen `x'_num_female_yr2=sum(female*persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
     egen `x'_cohort_size_yr2=sum(persist_to_yr2), by(`groupvar' inst_code first_term_PhD)
@@ -127,6 +132,24 @@ foreach x of local groups {
     gen `x'_per_international_yr2=`x'_num_international_yr2/(`x'_cohort_size_yr2)
 
 }
+
+
+egen cip_per_int_peers_c2 = cut(cip_per_int_peers), at(0(0.5)1)
+recode cip_per_int_peers_c2 (0=1) (0.5=2), gen(cip_per_int_peers_cut2)
+
+
+egen cip_per_int_peers_c3 = cut(cip_per_int_peers), at(0(0.33)1)
+recode cip_per_int_peers_c3 (0=1) (0.33=2) (0.66=3), gen(cip_per_int_peers_cut3)
+
+egen cip_per_int_peers_c4 = cut(cip_per_int_peers), at(0(0.25)1)
+recode cip_per_int_peers_c4 (0=1) (0.25=2) (0.50=3) (0.75=4), gen(cip_per_int_peers_cut4)
+
+
+egen cip_per_int_peers_c5 = cut(cip_per_int_peers), at(0(0.2)1)
+recode cip_per_int_peers_c5 (0=1) (0.2=2) (0.4=3) (0.6=4) (0.8=5), gen(cip_per_int_peers_cut5)
+
+egen cip_per_int_peers_c10 = cut(cip_per_int_peers), at(0(.1)1)
+recode cip_per_int_peers_c10 (0=1) (0.1=2) (0.2=3) (0.3=4) (0.4=5) (0.5=6) (0.6=7) (0.7=8) (0.8=9) (0.9=10), gen(cip_per_int_peers_cut10)
 
 
 
@@ -225,6 +248,12 @@ gen demeaned_lead_per_international=lead_per_international-mean_per_internationa
 egen lag_above_avg_international=cut(demeaned_lag_per_international), at(-1, 0 ,1) label
 egen lead_above_avg_international=cut(demeaned_lead_per_international), at(-1, 0 ,1) label
 
+
+*create ratio and logratio of women-to-men
+gen ratioINT = cip_num_international / (cip_cohort_size-cip_num_international)
+gen logratio=log(ratioINT)
+
+
 *Calculate average age for each program-cohort
 egen cip_cohort_age=mean(age), by(pgrm_cipcode2010 inst_code first_term_PhD)
 
@@ -233,29 +262,23 @@ save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_all_Years.dta",replace
 ********************************************************************************
 
 *Main sample is 2009-2016 (cohorts for whom Phdin6 is defined)
-drop if first_term_PhD>68
-drop if first_term_PhD<32
+drop if first_term_PhD > 64
+
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_for_Robustness.dta",replace
 ********************************************************************************
 ***************************************************************
 
 *Preferred sample is STEM AND size>9 only
-keep if STEM==1
-drop if mean_cohort_size<=9
+*keep if STEM==1
+drop if mean_cohort_size <= 9
+
+*Define Typically international
+egen programtag = tag(cip_inst)
+codebook mean_per_international if programtag
+*%International: mean=44.53; median=44.47; p75=73.26
+gen typically_international=(mean_per_international<=.4453)
 
 *save
 save "\\chrr\vr\profiles\syang\Desktop\clean_mike\Data_Preferred_Sample.dta",replace
 ********************************************************************************
-
-
-egen mean_yrstoPhD = mean(yrstoPhD), by(first_term_PhD)
-egen mean_dropout = mean(dropout), by(first_term_PhD)
-egen mean_everPhD = mean(everPhD), by(first_term_PhD)
-
-* Keep only one observation per ID
-bysort first_term_PhD: keep if _n == 1
-
-twoway line mean_yrstoPhD first_term_PhD
-twoway line mean_dropout first_term_PhD
-twoway line mean_everPhD first_term_PhD
